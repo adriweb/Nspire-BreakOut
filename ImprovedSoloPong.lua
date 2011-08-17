@@ -1,3 +1,4 @@
+
 -- Adriweb (with lots of help from Levak), 2011
 -- BreakOut "Casse Brique" Game
                            
@@ -114,8 +115,7 @@ function on.paint(gc)
         if ball.y > platform.window:height()-16 then
             if not ball:intersectsPaddle() then
             table.remove(BallsTable,ball.id)
-            if #BallsTable < 1 then gameover = true end -- un truc comme ça
-            else
+            if #BallsTable < 1 then gameover = true end -- un truc comme sne             else
             ball:PaddleChock()
             if not ball:touchedEdgesOfPaddle() then paddle:goGlow(12) end
             end
@@ -351,7 +351,6 @@ function Bonus:destroy()
 end
 
 function resetBonus(bonus)     
-    -- on retablit
     if bonus.bonusType == "PaddleGrow" then
         paddle.size = paddle.size - 8
     elseif bonus.bonusType == "PaddleShrink" then
