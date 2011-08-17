@@ -112,12 +112,13 @@ function on.paint(gc)
   if not pause and not gameover then
 
     for _, ball in pairs(BallsTable) do 
-        if ball.y > platform.window:height()-16 then
+       if ball.y > platform.window:height()-15 then --and ball.speedY > 0 then
             if not ball:intersectsPaddle() then
-            table.remove(BallsTable,ball.id)
-            if #BallsTable < 1 then gameover = true end -- un truc comme sne             else
-            ball:PaddleChock()
-            if not ball:touchedEdgesOfPaddle() then print("hello glowing paddle") ; paddle:goGlow(12) end
+              table.remove(BallsTable,ball.id)
+              if #BallsTable < 1 then gameover = true end
+            else
+               ball:PaddleChock()
+               if not ball:touchedEdgesOfPaddle() then paddle:goGlow(12) end
             end
         end
         --[[for _, block in pairs(BlocksTable) do
