@@ -13,7 +13,8 @@ currentLevel = {numberOfBlocks, xPositions = {}, yPositions = {}, blocksStates =
 possibleStates = {"breakable", "solid", "unbreakable"}
 bonusTypes = {"PaddleGrow", "PaddleShrink", "BallClone", "BallGrow"}  
     
-function reset()
+function reset() 
+    score = -1
     BonusTable = {}    
     BlocksTable = {}
     BallsTable = {}
@@ -97,7 +98,7 @@ function on.timer()
 end
 
 function on.resize()
-    if tonumber(platform.apilevel) > 1.0 then platform.window:setPreferredSize(0,0) end      -- Check if current OS is 3.0.1/3.0.2 or if it's the next one. -> then size bugfix
+    --if tonumber(platform.apilevel) > 1.0 then platform.window:setPreferredSize(0,0) end      -- Check if current OS is 3.0.1/3.0.2 or if it's the next one. -> then size bugfix
 end
 
 function on.charIn(ch)
@@ -110,9 +111,13 @@ end
 function on.paint(gc)
     gc:setColorRGB(0,0,0)
   if not pause and not gameover then
-
-    for _, ball in pairs(BallsTable) do 
-       if ball.y > platform.window:height()-15 then --and ball.speedY > 0 then
+  
+    if score == -1 then score = 0 end
+    score = score + 0.2
+        
+    for _, ball in pairs(BallsTable) do
+       
+       if ball.y+ball.radius > platform.window:height()-15 then
             if not ball:intersectsPaddle() then
               table.remove(BallsTable,ball.id)
               if #BallsTable < 1 then gameover = true end
@@ -161,7 +166,7 @@ function on.paint(gc)
              if bonus.timeLeft < 2 then table.remove(BonusTable,1) ; resetBonus(bonus) end
         end
    elseif gameover then
-      drawCenteredString(gc,"Game Over !")
+      drawCenteredString(gc,"Game Over ! Score = " .. tostring(math.floor(score)))
    elseif pause then
       drawCenteredString(gc,"... Pause ...")
    end  
@@ -205,7 +210,7 @@ function Ball:intersectsBall(ball)
 end
 
 function Ball:intersectsPaddle()
-    return (self.y > platform.window:height()-16) and (self.x >= paddle.x-paddle.size*0.5-4 and (self.x <= paddle.x+paddle.size*0.5+4))
+    return (self.y+self.radius > platform.window:height()-16) and (self.y+self.radius < platform.window:height()+10) and (self.x >= paddle.x-paddle.size*0.5-4 and (self.x <= paddle.x+paddle.size*0.5+4))
 end
 
 function Ball:BlockChock()
@@ -234,12 +239,12 @@ function Ball:update()
     self.speedX = -self.speedX
     end
     -- Si on collisionne sur les bords verticaux, on change de direction sur Y
-    if self.y - self.radius < 0 then --or self.y + self.radius > platform.window:height()-16 then
+    if self.y - self.radius < 0 then -- gestion du haut. Pour le bas, voir le paddleChock
             self.speedY = -self.speedY
-        end
+    end
     -- Dans tous les cas, on actualise la position
     self.x = self.x + self.speedX
-    self.y = self.y + self.speedY
+    self.y = self.y + self.speedY 
 end
 
 -------------
