@@ -75,6 +75,7 @@ end
 
 function on.create()
     reset()
+    pause = false
     gameover = false
     on.resize()
     timer.start(0.01)
@@ -83,7 +84,7 @@ function on.create()
          newPaddleY = newPaddleY+1
     end
     paddle = Paddle(0.5*platform.window:width()+newPaddleY,40,0,"")
-    aBall = Ball(math.random(1,platform.window:width()),platform.window:height()-26,-2,-2,#BallsTable+1)
+    aBall = Ball(math.random(10,platform.window:width()-10),platform.window:height()-26,-2,-2,#BallsTable+1)
     table.insert(BallsTable,aBall)
     for i, blockTable in pairs(level) do
        table.insert(BlocksTable,Block(blockTable[1], blockTable[2], 20, 12, blockTable[3]))
@@ -102,7 +103,6 @@ end
 function on.charIn(ch)
     if ch == "p" then pause = not pause end
     if ch == "r" then
-        gameover = false
         on.create()
     end
 end
@@ -111,13 +111,13 @@ function on.paint(gc)
     gc:setColorRGB(0,0,0)
   if not pause and not gameover then
 
-    for _, ball in pairs(BallsTable) do
+    for _, ball in pairs(BallsTable) do 
         if ball.y > platform.window:height()-16 then
             if not ball:intersectsPaddle() then
             table.remove(BallsTable,ball.id)
             if #BallsTable < 1 then gameover = true end -- un truc comme sne             else
             ball:PaddleChock()
-            if not ball:touchedEdgesOfPaddle() then paddle:goGlow(12) end
+            if not ball:touchedEdgesOfPaddle() then print("hello glowing paddle") ; paddle:goGlow(12) end
             end
         end
         --[[for _, block in pairs(BlocksTable) do
