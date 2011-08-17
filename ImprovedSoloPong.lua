@@ -219,6 +219,7 @@ function Ball:touchedEdgesOfPaddle()
 end
 
 function Ball:PaddleChock()
+   self.speedY = -self.speedY
    print("paddle touched")
    if self:touchedEdgesOfPaddle() then
        print("edge of paddle touched")
@@ -233,7 +234,7 @@ function Ball:update()
     self.speedX = -self.speedX
     end
     -- Si on collisionne sur les bords verticaux, on change de direction sur Y
-    if self.y - self.radius < 0 or self.y + self.radius > platform.window:height()-12 then
+    if self.y - self.radius < 0 then --or self.y + self.radius > platform.window:height()-16 then
             self.speedY = -self.speedY
         end
     -- Dans tous les cas, on actualise la position
