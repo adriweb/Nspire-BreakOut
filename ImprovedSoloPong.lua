@@ -13,6 +13,7 @@ possibleStates = {"breakable", "solid", "unbreakable"}
 bonusTypes = {"PaddleGrow", "PaddleShrink", "BallClone", "BallGrow"}  
     
 function reset() 
+    lives = 3
     score = -1
     BonusTable = {}    
     BlocksTable = {}
@@ -87,7 +88,7 @@ function on.create()
     aBall = Ball(math.random(10,platform.window:width()-10),platform.window:height()-26,-2,-2,#BallsTable+1)
     table.insert(BallsTable,aBall)
     for i, blockTable in pairs(level) do
-       table.insert(BlocksTable,Block(blockTable[1], blockTable[2], 20, 12, blockTable[3]))
+       table.insert(BlocksTable,Block(20*blockTable[1], 12*blockTable[2], 20, 12, blockTable[3], #BlocksTable+1))
     end
     
 end
@@ -97,7 +98,7 @@ function on.timer()
 end
 
 function on.resize()
-    --if tonumber(platform.apilevel) > 1.0 then platform.window:setPreferredSize(0,0) end      -- Check if current OS is 3.0.1/3.0.2 or if it's the next one. -> then size bugfix
+    --platform.window:setPreferredSize(0,0)
 end
 
 function on.charIn(ch)
@@ -109,7 +110,7 @@ end
 
 function on.paint(gc)
     gc:setColorRGB(0,0,0)
-  if not pause and not gameover then
+  if not gameover then
   
     if score == -1 then score = 0 end
     score = score + 0.2
@@ -125,16 +126,26 @@ function on.paint(gc)
                if not ball:touchedEdgesOfPaddle() then paddle:goGlow(12) end
             end
         end
-        --[[for _, block in pairs(BlocksTable) do
+        for _, block in pairs(BlocksTable) do
             if ball:intersectsBlock(block) then
-                --block:Destroy()
-                ball:BlockChock()
+                ball:BlockChock(block)
+                block:destroy()
             end
-	        --block:update()
+	        --block:update()  -- tout est dans le block:paint(gc) normalement
+            if pause then 
+               gc:setAlpha(127)
+            end
             block:paint(gc)
+            if pause then 
+               gc:setAlpha(255)
+            end
         end
-         ]]--   
-            ball:update()
+          
+         
+         if not pause then
+         
+            ball:update() 
+         
             if paddle.dx > 0 then
                 paddle.x = paddle.x + paddle.dx
                 paddle.dx = paddle.dx - 1 -- a augmenter si on-calc
@@ -142,16 +153,27 @@ function on.paint(gc)
                 paddle.x = paddle.x + paddle.dx
                 paddle.dx = paddle.dx + 1 -- a augmenter si on-calc
             end
+            
+        end       
         
-        ball:paint(gc)
-        paddle:paint(gc)
-        if math.random(1,300) == 100 then table.insert(FallingBonusTable,Bonus(math.random(1,pww()),0,bonusTypes[math.random(1,#bonusTypes)])) end
+        if pause then 
+           gc:setAlpha(127)
+        end
+           ball:paint(gc)
+           paddle:paint(gc)
+        if pause then
+           gc:setAlpha(255)
+           drawCenteredString(gc,"... Pause ...")
+        end
+        
+        if not pause and math.random(1,300) == 100 then table.insert(FallingBonusTable,Bonus(math.random(1,pww()),0,bonusTypes[math.random(1,#bonusTypes)])) end
     end 
-        
         for _, bonus in pairs(FallingBonusTable) do
         
+             if pause then gc:setAlpha(127) end
              bonus:paint(gc)
-             bonus:update()
+             if pause then gc:setAlpha(255) end
+             if not pause then bonus:update() end
              if bonus:fallsOnPaddle() then paddle:grabBonus(bonus) ; bonus:destroy() end
              if bonus.y > platform.window:height() - 16 and not bonus:fallsOnPaddle() then bonus:destroy() end
 
@@ -161,14 +183,12 @@ function on.paint(gc)
              if bonus.timeLeft < 666 then gc:setColorRGB(0,0,0) end
              if bonus.timeLeft < 333 then gc:setColorRGB(255,0,0) end
              gc:drawString(bonus.bonusType .. " : " .. tostring(bonus.timeLeft),0,i*12,"top")
-             bonus.timeLeft = bonus.timeLeft - 1
+             if not pause then bonus.timeLeft = bonus.timeLeft - 1 end
              if bonus.timeLeft < 2 then table.remove(BonusTable,1) ; resetBonus(bonus) end
-        end
+        end 
    elseif gameover then
       drawCenteredString(gc,"Game Over ! Score = " .. tostring(math.floor(score)))
-   elseif pause then
-      drawCenteredString(gc,"... Pause ...")
-   end  
+   end
 end
 
 function on.arrowKey(key)
@@ -199,9 +219,8 @@ function Ball:paint(gc)
     gc:fillArc(self.x-self.radius+1, self.y-self.radius+1, 2*self.radius-2, 2*self.radius-2, 0, 360)
 end
 
-function Ball:intersectsBlock(block)
-       return (self.x < block.x - self.radius or self.x > block.x + self.radius + block.w)
-        and (self.y < block.y - self.radius or self.y > block.y + self.radius + block.h)
+function Ball:intersectsBlock(block)         
+    return (self.x-self.radius > block.x and self.x+self.radius < (block.x + block.w)) and (self.y-self.radius > block.y and self.y+self.radius < (block.y + block.h))
 end
 
 function Ball:intersectsBall(ball)
@@ -212,9 +231,10 @@ function Ball:intersectsPaddle()
     return (self.y+self.radius > platform.window:height()-16) and (self.y+self.radius < platform.window:height()+10) and (self.x >= paddle.x-paddle.size*0.5-4 and (self.x <= paddle.x+paddle.size*0.5+4))
 end
 
-function Ball:BlockChock()
+function Ball:BlockChock(block)
 	--TODO
-    --self.speedX = 0.95*self.speedX ; self.speedY = 0.95*self.speedY
+	print("ball touched block n°" .. block.id)
+    self.speedX = -0.95*self.speedX ; self.speedY = -0.95*self.speedY
    	--ball.speedX = 0.95*ball.speedX ; ball.speedY = 0.95*ball.speedY
 end  
 
@@ -244,6 +264,8 @@ function Ball:update()
     -- Dans tous les cas, on actualise la position
     self.x = self.x + self.speedX
     self.y = self.y + self.speedY 
+    
+    if self.y+self.radius > pwh()+10 then gameover = true end
 end
 
 -------------
@@ -271,6 +293,9 @@ function Paddle:grabBonus(bonus)
         table.insert(BallsTable,Ball(math.random(1,platform.window:width()),platform.window:height()-26,-2,-2,#BallsTable+1))
     elseif bonus.bonusType == "BallGrow" then
         for _, ball in pairs(BallsTable) do 
+             if ball.y-ball.radius < 5 then
+                ball.y = ball.y - 6
+             end
              ball.radius = ball.radius + 6
         end
     end
@@ -297,29 +322,32 @@ end
 
 Block = class()
 
-function Block:init(x, y, w, h, state)
+function Block:init(x, y, w, h, state, id)
     self.x = x
     self.y = y
     self.w = w
     self.h = h
     self.state = state
+    self.id = id -- algorithme a trouver  -- ou juste incrémenter de 1 (en fait la position dans le tableau) a chaque init
 end
                          
 function Block:paint(gc)
     gc:setColorRGB(0,0,0)
-    gc:drawRect(self.x, self.y, self.w, self.h)
-    if self.state == "breakable" then 
+    gc:fillRect(self.x, self.y, self.w, self.h)
+    if self.state == 1 then -- "breakable"
         gc:setColorRGB(0,255,0)
-    elseif self.state == "solid" then
+    elseif self.state == 2 then-- "solid"
         gc:setColorRGB(0,0,255)
-    elseif self.state == "unbreakable" then
+    elseif self.state == 3 then   -- "unbreakable"
         gc:setColorRGB(200,200,200)
     end
-    gc:drawRect(self.x+1, self.y+1, self.w-2, self.h-2)
+    gc:fillRect(self.x+1, self.y+1, self.w-2, self.h-2)
 end 
 
 function Block:destroy()
+   -- only for breakable
    print("BlockDestroy called")
+   table.remove(BlocksTable,self.id)
 end
 
 ---------------
@@ -365,7 +393,7 @@ function resetBonus(bonus)
             -- Do nothing
     elseif bonus.bonusType == "BallGrow" then
         for _, ball in pairs(BallsTable) do 
-             ball.radius = ball.radius - 3
+             if ball.radius > 4 then ball.radius = ball.radius - 3 end
         end
     end
 end
