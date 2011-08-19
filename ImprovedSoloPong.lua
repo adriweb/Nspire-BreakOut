@@ -1,4 +1,3 @@
-
 -- Adriweb (with lots of help from Levak), 2011
 -- BreakOut "Casse Brique" Game
                            
@@ -81,7 +80,7 @@ function on.create()
     on.resize()
     timer.start(0.01)
     local newPaddleY = 0
-    while (0.5*platform.window:width()+newPaddleY)%4 ~= 0 do
+    while (math.floor(0.5*platform.window:width())+newPaddleY)%4 ~= 0 do
          newPaddleY = newPaddleY+1
     end
     paddle = Paddle(0.5*platform.window:width()+newPaddleY,40,0,"")
