@@ -116,7 +116,7 @@ function on.timer()
 end
 
 function on.resize()
-    platform.window:setPreferredSize(0,0)
+    --platform.window:setPreferredSize(0,0)
 end
 
 function on.charIn(ch)
