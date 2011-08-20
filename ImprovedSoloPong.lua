@@ -88,7 +88,7 @@ function on.create()
     aBall = Ball(math.random(10,platform.window:width()-10),platform.window:height()-26,-2,-2,#BallsTable+1)
     table.insert(BallsTable,aBall)
     for i, blockTable in pairs(level) do
-       table.insert(BlocksTable,Block(20*blockTable[1], 12*blockTable[2], 20, 12, blockTable[3], #BlocksTable+1))
+         table.insert(BlocksTable,Block(20*blockTable[1], 12*blockTable[2], 20, 12, blockTable[3], #BlocksTable+1))
     end
     
 end
@@ -127,6 +127,8 @@ function on.paint(gc)
             end
         end
         for _, block in pairs(BlocksTable) do
+          if block == 0 then
+          else
             if ball:intersectsBlock(block) then
                 ball:BlockChock(block)
                 block:destroy()
@@ -139,6 +141,7 @@ function on.paint(gc)
             if pause then 
                gc:setAlpha(255)
             end
+          end
         end
           
          
@@ -220,7 +223,7 @@ function Ball:paint(gc)
 end
 
 function Ball:intersectsBlock(block)         
-    return (self.x-self.radius > block.x and self.x+self.radius < (block.x + block.w)) and (self.y-self.radius > block.y and self.y+self.radius < (block.y + block.h))
+    return (self.x-self.radius > block.x-3 and self.x+self.radius < (block.x + block.w + 3)) and (self.y-self.radius > block.y+3 and self.y+self.radius < (block.y + block.h + 3))
 end
 
 function Ball:intersectsBall(ball)
@@ -348,6 +351,7 @@ function Block:destroy()
    -- only for breakable
    print("BlockDestroy called")
    table.remove(BlocksTable,self.id)
+   table.insert(BlocksTable,self.id,0)
 end
 
 ---------------
