@@ -1,9 +1,10 @@
 -- Adriweb (with lots of help from Levak), 2011
 -- BreakOut "Casse Brique" Game
-                           
--- More of a Improved Pong game ... ><
-  
------------------- Globals :
+-- v1.1a                                 
+                                 
+-------------------------------   
+------------Globals------------
+------------------------------- 
 
 BlockWidth = 20
 BlockHeight = 10
@@ -20,14 +21,17 @@ function reset()
     BallsTable = {}
     FallingBonusTable = {}
 end
+     
+     
+level =   { {1,1,1}, {3,5,2}, {10,4,3} } -- level 1
+--------   {}, -- level 2
+--------   .....
+                            
+                            
+-------------------------------   
+---------BetterLuaAPI----------
+------------------------------- 
 
---levels = {
- level =   { {1,1,1}, {3,5,2}, {10,4,3} } -- level 1
---    {}, -- level 2
-    -- .....
---}
-
------------------------------
 
 function fillRoundRect(myGC,x,y,wd,ht,radius)  -- wd = width and ht = height -- renders badly when transparency (alpha) is not at maximum >< will re-code later
     if radius > ht/2 then radius = ht/2 end -- avoid drawing cool but unexpected shapes. This will draw a circle (max radius)
@@ -71,8 +75,12 @@ end
 function drawCenteredString(myGC,str)
 	myGC:drawString(str, (pww() - myGC:getStringWidth(str)) / 2, pwh() / 2, "middle")
 end
+                         
+                         
+-------------------------------   
+------------Events-------------
+-------------------------------   
 
--------------
 
 function on.create()
     reset()
@@ -200,9 +208,12 @@ function on.arrowKey(key)
         paddle.dx = -8
     end
 end
+                            
+                            
+-------------------------------   
+----------Ball Class-----------     
+-------------------------------    
 
---------------
-                         
 Ball = class()
 
 function Ball:init(x, y, speedX, speedY, id)
@@ -275,9 +286,12 @@ function Ball:update()
     self.y = self.y + self.speedY 
     
     if self.y+self.radius > pwh()+10 then gameover = true end
-end
+end                          
 
--------------
+
+-------------------------------   
+---------Paddle Class----------
+------------------------------- 
 
 Paddle = class()
 
@@ -327,7 +341,9 @@ function Paddle:paint(gc)
     end
 end
 
--------------                     
+-------------------------------   
+---------Block Class-----------
+-------------------------------                     
 
 Block = class()
 
@@ -367,7 +383,10 @@ function Block:destroy()
    end
 end
 
----------------
+
+-------------------------------   
+---------Bonus Class-----------
+------------------------------- 
 
 Bonus = class()
 
