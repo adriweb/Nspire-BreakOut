@@ -32,9 +32,6 @@ function reset()
      table.insert(level,{math.random(1,10),math.random(1,10),math.random(1,3)})
   end
 end
-     
-     
-
 
 
   
@@ -143,6 +140,7 @@ function on.paint(gc)
             else
                ball:PaddleChock()
                if not ball:touchedEdgesOfPaddle() then paddle:goGlow(12) end
+               if ball.x > 10 and ball.x > pww()-10 then ball.x = ball.x + math.random(-1,1)*0.5*ball:howFarAwayTheFromCenterOfThePaddle() end
             end
         end
         
@@ -250,7 +248,7 @@ function Ball:paint(gc)
 end
 
 function Ball:intersectsBlock(block)         
-    return (self.x > block.x-self.radius and self.x < (block.x + block.w + self.radius)) and (self.y > block.y+self.radius and self.y < (block.y + block.h + self.radius))
+    return (self.x > block.x-self.radius-2 and self.x < (block.x + block.w + self.radius + 2)) and (self.y > block.y+self.radius + 2 and self.y < (block.y + block.h + self.radius + 2))
 end
 
 function Ball:intersectsBall(ball)
@@ -265,18 +263,34 @@ function Ball:BlockChock(block)
 	--print("ball touched block n°" .. block.id)
     
     if self.y > block.y+block.h or self.y < block.y then
-        print("change Y")
         self.speedY = -self.speedY
     end
     if self.x > block.x+block.w or self.x < block.x then
-        print("change Y")
        self.speedX = -self.speedX 
+    end
+    
+    if block.state == 3 then
+       if self.speedY > 0 then
+          if self.speedX > 0 then 
+             self.x = self.x + 1*math.random(0,1)
+          end
+          self.y = self.y + 1*math.random(0,1)
+       else
+          if self.speedX > 0 then 
+             self.x = self.x + 1*math.random(0,1)
+          end
+          self.y = self.y + 1*math.random(0,1)
+       end
     end
     
 end  
 
 function Ball:touchedEdgesOfPaddle() 
     return ( self.x >= paddle.x-paddle.size*0.5-4 and self.x <= paddle.x-paddle.size*0.5+4 ) or ( self.x >= paddle.x+paddle.size*0.5-4 and self.x <= paddle.x+paddle.size*0.5+4 )
+end
+
+function Ball:howFarAwayTheFromCenterOfThePaddle()
+   return math.abs(self.x-paddle.x)
 end
 
 function Ball:PaddleChock()
@@ -286,7 +300,7 @@ function Ball:PaddleChock()
        print("edge of paddle touched")
        self.speedX = self.speedX * 1.1
        print("speedX is now : ",tostring(self.speedX))
-   end
+   end                                                                                                       
 end
 
 function Ball:update()
@@ -302,7 +316,7 @@ function Ball:update()
     self.x = self.x + self.speedX
     self.y = self.y + self.speedY 
     
-    if self.y+self.radius > pwh()+10 then gameover = true end    -- just in case ...
+    if self.y+self.radius > pwh()+10 or self.x < -5 or self.x > pww()+5 then gameover = true end    -- just in case ...
 end                          
 
 
