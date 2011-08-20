@@ -1,4 +1,4 @@
--- Adriweb (with lots of help from Levak), 2011
+-- Adriweb (with help from Levak), 2011
 -- BreakOut "Casse Brique" Game
 -- v1.1a                                 
                                  
@@ -11,23 +11,33 @@ BlockHeight = 10
 
 currentLevel = {numberOfBlocks, xPositions = {}, yPositions = {}, blocksStates = {}}
 possibleStates = {"breakable", "solid", "unbreakable"}
-bonusTypes = {"PaddleGrow", "PaddleShrink", "BallClone", "BallGrow"}  
-    
-function reset() 
+bonusTypes = {"PaddleGrow", "PaddleShrink", "BallClone", "BallGrow", "BallShrink"}  
+
+level =   { {1,1,1}, {3,5,2}, {10,4,3} } -- level 1
+--------   {}, -- level 2
+--------   .....
+
+function reset()
+    win = false
+    gameover = false
+    pause = false
     lives = 3
     score = -1
     BonusTable = {}    
     BlocksTable = {}
     BallsTable = {}
     FallingBonusTable = {}
+    -- Random level : 
+  for i=1,15 do
+     table.insert(level,{math.random(1,10),math.random(1,10),math.random(1,3)})
+  end
 end
      
      
-level =   { {1,1,1}, {3,5,2}, {10,4,3} } -- level 1
---------   {}, -- level 2
---------   .....
-                            
-                            
+
+
+
+  
 -------------------------------   
 ---------BetterLuaAPI----------
 ------------------------------- 
@@ -93,7 +103,7 @@ function on.create()
          newPaddleY = newPaddleY+1
     end
     paddle = Paddle(0.5*platform.window:width()+newPaddleY,40,0,"")
-    aBall = Ball(math.random(10,platform.window:width()-10),platform.window:height()-26,-2,-2,#BallsTable+1)
+    aBall = Ball(math.random(10,platform.window:width()-10),platform.window:height()-26,-1,-1,#BallsTable+1)
     table.insert(BallsTable,aBall)
     for i, blockTable in pairs(level) do
          table.insert(BlocksTable,Block(20*blockTable[1], 12*blockTable[2], 20, 12, blockTable[3], #BlocksTable+1))
@@ -106,7 +116,7 @@ function on.timer()
 end
 
 function on.resize()
-    --platform.window:setPreferredSize(0,0)
+    platform.window:setPreferredSize(0,0)
 end
 
 function on.charIn(ch)
@@ -119,7 +129,8 @@ end
 function on.paint(gc)
     gc:setColorRGB(0,0,0)
   if not gameover then
-  
+    
+    local tmpCount = 0
     if score == -1 then score = 0 end
     score = score + 0.2
         
@@ -134,8 +145,10 @@ function on.paint(gc)
                if not ball:touchedEdgesOfPaddle() then paddle:goGlow(12) end
             end
         end
+        
         for _, block in pairs(BlocksTable) do
           if block ~= 0 then
+            if block.state == 3 then tmpCount = tmpCount + 1 end
             if ball:intersectsBlock(block) then
                 ball:BlockChock(block)
                 block:destroy()
@@ -148,9 +161,11 @@ function on.paint(gc)
             if pause then 
                gc:setAlpha(255)
             end
+          else
+              tmpCount = tmpCount + 1
+              if tmpCount == #Block then win = true end
           end
         end
-          
          
          if not pause then
          
@@ -198,6 +213,8 @@ function on.paint(gc)
         end 
    elseif gameover then
       drawCenteredString(gc,"Game Over ! Score = " .. tostring(math.floor(score)))
+   elseif win then
+      drawCenteredString(gc,"You won ! Score = " .. tostring(math.floor(score)))
    end
 end
 
@@ -221,7 +238,7 @@ function Ball:init(x, y, speedX, speedY, id)
     self.y = y
     self.speedX = speedX
     self.speedY = speedY
-    self.radius = 4 -- radius   <- debug ?
+    self.radius = 5 -- radius   <- debug ?
     self.id = id
 end
 
@@ -233,7 +250,7 @@ function Ball:paint(gc)
 end
 
 function Ball:intersectsBlock(block)         
-    return (self.x-self.radius > block.x-3 and self.x+self.radius < (block.x + block.w + 3)) and (self.y-self.radius > block.y+3 and self.y+self.radius < (block.y + block.h + 3))
+    return (self.x > block.x-self.radius and self.x < (block.x + block.w + self.radius)) and (self.y > block.y+self.radius and self.y < (block.y + block.h + self.radius))
 end
 
 function Ball:intersectsBall(ball)
@@ -245,17 +262,17 @@ function Ball:intersectsPaddle()
 end
 
 function Ball:BlockChock(block)
-	--TODO
-	print("ball touched block n°" .. block.id)
-    self.speedX = -0.95*self.speedX 
-    self.speedY = -0.95*self.speedY
-
-   	--[[ todo (pas realistic) :
-   	    - si touche par le bas/gauche : opposer le speedX
-   	    - si touche par la droite/gauche : opposer le speedY
-   	    - si edge : opposer les deux
-   	--]]
-   	
+	--print("ball touched block n°" .. block.id)
+    
+    if self.y > block.y+block.h or self.y < block.y then
+        print("change Y")
+        self.speedY = -self.speedY
+    end
+    if self.x > block.x+block.w or self.x < block.x then
+        print("change Y")
+       self.speedX = -self.speedX 
+    end
+    
 end  
 
 function Ball:touchedEdgesOfPaddle() 
@@ -275,17 +292,17 @@ end
 function Ball:update()
     -- Si on collisionne sur les bords horizontaux, on change de direction sur X
     if self.x - self.radius < 0 or self.x + self.radius > platform.window:width() then
-    self.speedX = -self.speedX
+        self.speedX = -self.speedX
     end
     -- Si on collisionne sur les bords verticaux, on change de direction sur Y
     if self.y - self.radius < 0 then -- gestion du haut. Pour le bas, voir le paddleChock
-            self.speedY = -self.speedY
+        self.speedY = -self.speedY
     end
     -- Dans tous les cas, on actualise la position
     self.x = self.x + self.speedX
     self.y = self.y + self.speedY 
     
-    if self.y+self.radius > pwh()+10 then gameover = true end
+    if self.y+self.radius > pwh()+10 then gameover = true end    -- just in case ...
 end                          
 
 
@@ -317,9 +334,16 @@ function Paddle:grabBonus(bonus)
     elseif bonus.bonusType == "BallGrow" then
         for _, ball in pairs(BallsTable) do 
              if ball.y-ball.radius < 5 then
-                ball.y = ball.y - 6
+                ball.y = ball.y + 6
              end
-             ball.radius = ball.radius + 6
+             ball.radius = ball.radius + 5
+        end
+    elseif bonus.bonusType == "BallShrink" then
+        for _, ball in pairs(BallsTable) do 
+             if ball.y-ball.radius < 5 then
+                ball.y = ball.y + 6
+             end
+             if ball.radius > 4 then ball.radius = ball.radius - 4 end
         end
     end
 end     
@@ -369,10 +393,7 @@ function Block:paint(gc)
     gc:fillRect(self.x+1, self.y+1, self.w-2, self.h-2)
 end 
 
-function Block:destroy()
-   -- only for breakable
-   print("BlockDestroy called")
-   
+function Block:destroy()  
    if self.state == 2 then
        self.state = 1 
        table.remove(BlocksTable,self.id)
@@ -429,7 +450,12 @@ function resetBonus(bonus)
             -- Do nothing
     elseif bonus.bonusType == "BallGrow" then
         for _, ball in pairs(BallsTable) do 
-             if ball.radius > 4 then ball.radius = ball.radius - 3 end
+             if ball.radius > 4 then ball.radius = ball.radius - 5 end
+        end
+    elseif bonus.bonusType == "BallShrink" then
+        for _, ball in pairs(BallsTable) do 
+             if not ball.radius == 4 then ball.radius = ball.radius + 5 end
         end
     end
+    
 end
