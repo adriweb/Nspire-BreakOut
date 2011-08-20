@@ -236,10 +236,14 @@ end
 function Ball:BlockChock(block)
 	--TODO
 	print("ball touched block n°" .. block.id)
-    self.speedX = -0.95*self.speedX ; self.speedY = -0.95*self.speedY
-   	--ball.speedX = 0.95*ball.speedX ; ball.speedY = 0.95*ball.speedY
-   	
-   	-- todo (pas realistic)
+    self.speedX = -0.95*self.speedX 
+    self.speedY = -0.95*self.speedY
+
+   	--[[ todo (pas realistic) :
+   	    - si touche par le bas/gauche : opposer le speedX
+   	    - si touche par la droite/gauche : opposer le speedY
+   	    - si edge : opposer les deux
+   	--]]
    	
 end  
 
@@ -354,10 +358,9 @@ function Block:destroy()
    print("BlockDestroy called")
    
    if self.state == 2 then
-       local blockCopy = self
-       blockCopy.state = 1 
+       self.state = 1 
        table.remove(BlocksTable,self.id)
-       table.insert(BlocksTable,self.id,blockCopy) 
+       table.insert(BlocksTable,self.id,self) 
    elseif self.state == 1 then
        table.remove(BlocksTable,self.id)
        table.insert(BlocksTable,self.id,0) 
