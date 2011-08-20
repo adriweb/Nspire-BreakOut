@@ -127,8 +127,7 @@ function on.paint(gc)
             end
         end
         for _, block in pairs(BlocksTable) do
-          if block == 0 then
-          else
+          if block ~= 0 then
             if ball:intersectsBlock(block) then
                 ball:BlockChock(block)
                 block:destroy()
