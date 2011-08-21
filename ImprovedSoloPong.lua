@@ -9,6 +9,8 @@
 BlockWidth = 20
 BlockHeight = 10
 
+totalBlocksToDestroy = 0
+
 currentLevel = {numberOfBlocks, xPositions = {}, yPositions = {}, blocksStates = {}}
 possibleStates = {"breakable", "solid", "unbreakable"}
 bonusTypes = {"PaddleGrow", "PaddleShrink", "BallClone", "BallGrow", "BallShrink"}  
@@ -31,15 +33,22 @@ function reset()
         
     level = { {1,1,1}, {3,5,2}, {10,4,3} } -- level 1
     -- Random level : 
-    for i=1,20 do
-       table.insert(level,{math.random(1,14),math.random(1,9),math.random(1,3)})
+    for i=1,5 do
+       table.insert(level,{math.random(1,14),math.random(1,9),randomAndCount()})
     end
+    for i, blockTable in pairs(level) do
+         table.insert(BlocksTable,Block(20*blockTable[1], 12*blockTable[2], 20, 12, blockTable[3], #BlocksTable+1))
+    end
+    totalBlocksToDestroy = #BlocksTable - totalBlocksToDestroy
 end
 
 function randomAndCount()
-
+   theRand = math.random(1,3)
+   if theRand == 3 then totalBlocksToDestroy = totalBlocksToDestroy + 1 end
+   if theRand == 2 then totalBlocksToDestroy = totalBlocksToDestroy - 1 end
+   return theRand
 end
-  
+
 -------------------------------   
 ---------BetterLuaAPI----------
 ------------------------------- 
@@ -99,7 +108,6 @@ function on.create()
     pause = false
     gameover = false
     on.resize()
-    totalBlocksToDestroy = 999
     local newPaddleY = 0
     while (math.floor(0.5*platform.window:width())+newPaddleY)%4 ~= 0 do
          newPaddleY = newPaddleY+1
@@ -107,9 +115,6 @@ function on.create()
     paddle = Paddle(0.5*platform.window:width()+newPaddleY,40,0,"")
     aBall = Ball(math.random(10,platform.window:width()-10),platform.window:height()-26,-1,-1,#BallsTable+1)
     table.insert(BallsTable,aBall)
-    for i, blockTable in pairs(level) do
-         table.insert(BlocksTable,Block(20*blockTable[1], 12*blockTable[2], 20, 12, blockTable[3], #BlocksTable+1))
-    end
     timer.start(0.01)
 end
 
@@ -137,7 +142,7 @@ end
 
 function on.paint(gc)
   gc:setColorRGB(0,0,0)
-  if tmpCount >= totalBlocksToDestroy and tmpCount > 0 then win = true end  -- a revoir
+  if tmpCount >= totalBlocksToDestroy and tmpCount > 0 and totalBlocksToDestroy > 0 then win = true end  -- a revoir
   if not gameover and not needHelp and not win then
     
     if score == -1 then score = 0 end
@@ -168,6 +173,7 @@ function on.enterKey()
     print("#BonusTable = " .. #BonusTable)
     print("#BlocksTable = " .. #BlocksTable)
     print("tmpCount = " .. tmpCount)
+    print("totalBlocksToDestroy = " .. totalBlocksToDestroy)
 end
 
 
