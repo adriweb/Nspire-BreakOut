@@ -224,33 +224,31 @@ end
 
 function paddleStuff(gc)
    if paddle.dx > 0 then
-                paddle.x = paddle.x + paddle.dx
-                paddle.dx = paddle.dx - 1 -- a augmenter si on-calc
-            elseif paddle.dx < 0 then
-                paddle.x = paddle.x + paddle.dx
-                paddle.dx = paddle.dx + 1 -- a augmenter si on-calc
+       paddle.x = paddle.x + paddle.dx
+       paddle.dx = paddle.dx - 1 -- a augmenter si on-calc
+   elseif paddle.dx < 0 then
+       paddle.x = paddle.x + paddle.dx
+       paddle.dx = paddle.dx + 1 -- a augmenter si on-calc
    end
 end
 
 function bonusStuff(gc)
    for _, bonus in pairs(FallingBonusTable) do
-        
-             if pause then gc:setAlpha(127) end
-             bonus:paint(gc)
-             if pause then gc:setAlpha(255) end
-             if not pause then bonus:update() end
-             if bonus:fallsOnPaddle() then paddle:grabBonus(bonus) ; bonus:destroy() end
-             if bonus.y > platform.window:height() - 16 and not bonus:fallsOnPaddle() then bonus:destroy() end
-
-        end
-        for i, bonus in pairs(BonusTable) do
-             gc:setColorRGB(0,0,255)
-             if bonus.timeLeft < 666 then gc:setColorRGB(0,0,0) end
-             if bonus.timeLeft < 333 then gc:setColorRGB(255,0,0) end
-             gc:drawString(bonus.bonusType .. " : " .. tostring(bonus.timeLeft),0,i*12,"top")
-             if not pause then bonus.timeLeft = bonus.timeLeft - 1 end
-             if bonus.timeLeft < 2 then table.remove(BonusTable,1) ; resetBonus(bonus) end
-        end 
+        if pause then gc:setAlpha(127) end
+        bonus:paint(gc)
+        if pause then gc:setAlpha(255) end
+        if not pause then bonus:update() end
+        if bonus:fallsOnPaddle() then paddle:grabBonus(bonus) ; bonus:destroy() end
+        if bonus.y > platform.window:height() - 16 and not bonus:fallsOnPaddle() then bonus:destroy() end
+   end
+   for i, bonus in pairs(BonusTable) do
+        gc:setColorRGB(0,0,255)
+        if bonus.timeLeft < 666 then gc:setColorRGB(0,0,0) end
+        if bonus.timeLeft < 333 then gc:setColorRGB(255,0,0) end
+        gc:drawString(bonus.bonusType .. " : " .. tostring(bonus.timeLeft),0,i*12,"top")
+        if not pause then bonus.timeLeft = bonus.timeLeft - 1 end
+        if bonus.timeLeft < 2 then table.remove(BonusTable,1) ; resetBonus(bonus) end
+   end 
 end
                             
 -------------------------------   
@@ -323,11 +321,9 @@ end
 
 function Ball:PaddleChock()
    self.speedY = -self.speedY
-   print("paddle touched")
    if self:touchedEdgesOfPaddle() then
-       print("edge of paddle touched")
        self.speedX = self.speedX * 1.1
-       print("speedX is now : ",tostring(self.speedX))
+       --print("edge of paddle touched ; speedX is now : ",tostring(self.speedX))
    end                                                                                                       
 end
 
@@ -365,14 +361,13 @@ end
 function Paddle:grabBonus(bonus)
     bonus.timeLeft = 1000
     table.insert(BonusTable,bonus)
-    print("I haz bonuss :", bonus.bonusType)
     -- TODO                
     if bonus.bonusType == "PaddleGrow" then
         self.size = self.size + 8
     elseif bonus.bonusType == "PaddleShrink" then
         self.size = self.size - 8
     elseif bonus.bonusType == "BallClone" then
-        table.insert(BallsTable,Ball(math.random(1,platform.window:width()),platform.window:height()-26,-2,-2,#BallsTable+1))
+        table.insert(BallsTable,Ball(math.random(1,platform.window:width()),platform.window:height()-26,-1,-1,#BallsTable+1))
     elseif bonus.bonusType == "BallGrow" then
         for _, ball in pairs(BallsTable) do 
              if ball.y-ball.radius < 5 then
@@ -399,7 +394,7 @@ function Paddle:paint(gc)
     fillRoundRect(gc,self.x,platform.window:height()-10,self.size,6,2)
     if self.glow > 0 then 
         gc:setColorRGB(255,100,0)
-        fillRoundRect(gc,self.x+2,platform.window:height()-11,self.size-20,3,1)
+        fillRoundRect(gc,self.x+2,platform.window:height()-11,self.size-15,3,1)
         self.glow = self.glow - 1
     end
     if #self.bonus > 0 then
@@ -419,7 +414,7 @@ function Block:init(x, y, w, h, state, id)
     self.w = w
     self.h = h
     self.state = state
-    self.id = id -- algorithme a trouver  -- ou juste incrémenter de 1 (en fait la position dans le tableau) a chaque init
+    self.id = id
 end
                          
 function Block:paint(gc)
