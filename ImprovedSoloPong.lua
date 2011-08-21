@@ -21,6 +21,7 @@ function reset()
     win = false
     gameover = false
     pause = false
+    tmpCount = 0
     lives = 3
     score = -1
     BonusTable = {}    
@@ -30,7 +31,7 @@ function reset()
     
     level = { {1,1,1}, {3,5,2}, {10,4,3} } -- level 1
     -- Random level : 
-    for i=1,35 do
+    for i=1,20 do
        table.insert(level,{math.random(1,14),math.random(1,9),math.random(1,3)})
     end
 end
@@ -133,10 +134,9 @@ function on.mouseMove(x,y)
 end
 
 function on.paint(gc)
-
   gc:setColorRGB(0,0,0)
-  if not gameover and not needHelp then
-    tmpCount = 0
+  if tmpCount >= #BlocksTable and tmpCount > 0 then win = true end
+  if not gameover and not needHelp and not win then
     
     if score == -1 then score = 0 end
     if not pause then score = score + 0.2 end
@@ -144,11 +144,11 @@ function on.paint(gc)
     ballStuff(gc)
     bonusStuff(gc)
      
-   elseif gameover then
+  elseif gameover then
       drawCenteredString(gc,"Game Over ! Score = " .. tostring(math.floor(score)))
-   elseif win then
+  elseif win then
       drawCenteredString(gc,"You won ! Score = " .. tostring(math.floor(score)))
-   elseif needHelp then
+  elseif needHelp then
       --todo : help screen
    end
 end
@@ -161,6 +161,13 @@ function on.arrowKey(key)
     end
 end
 
+function on.enterKey()
+    print("#BallsTable = " .. #BallsTable) 
+    print("#BonusTable = " .. #BonusTable)
+    print("#BlocksTable = " .. #BlocksTable)
+    print("tmpCount = " .. tmpCount)
+end
+
 
 -------------------------------   
 --------on.paint stuff---------     
@@ -168,7 +175,7 @@ end
           
 function ballStuff(gc)
     for _, ball in pairs(BallsTable) do
-       
+       if 2*ball.radius-2 < 0 then ball.radius = 5 end
        if ball.y+ball.radius > platform.window:height()-15 then
           if not ball:intersectsPaddle() then
              table.remove(BallsTable,ball.id)
@@ -176,14 +183,13 @@ function ballStuff(gc)
           else
              ball:PaddleChock()
              if not ball:touchedEdgesOfPaddle() then paddle:goGlow(12) end
-             local increment = 0.5*(-1+test(ball.speedX > 0))*math.abs(ball:howFarAwayFromTheCenterOfThePaddle())
+             local increment = 0.7*(-1+test(ball.speedX > 0))*math.abs(ball:howFarAwayFromTheCenterOfThePaddle())
              if ball.x > 10 and ball.x < pww()-10 then ball.x = ball.x + increment end
           end
        end
         
         for _, block in pairs(BlocksTable) do
           if block ~= 0 then
-            if block.state == 3 then tmpCount = tmpCount + 1 end
             if ball:intersectsBlock(block) then
                 ball:BlockChock(block)
                 block:destroy()
@@ -195,9 +201,6 @@ function ballStuff(gc)
             if pause then 
                gc:setAlpha(255)
             end
-          else
-              tmpCount = tmpCount + 1
-              if tmpCount == #Block then win = true end
           end
         end
          
@@ -286,7 +289,7 @@ function Ball:intersectsPaddle()
 end
 
 function Ball:BlockChock(block)
-	--print("ball touched block n°" .. block.id)
+	--print("ball touched block #" .. block.id)
     
     if self.y > block.y+block.h or self.y < block.y then
         self.speedY = -self.speedY
@@ -340,7 +343,7 @@ function Ball:update()
     self.x = self.x + self.speedX
     self.y = self.y + self.speedY 
     
-    if self.y+self.radius > pwh()+10 or self.x < -5 or self.x > pww()+5 then gameover = true end    -- just in case ...
+    if self.y+self.radius > pwh()+10 or self.y < -1 or self.x < -5 or self.x > pww()+5 then table.remove(BallsTable,self.id) end    -- just in case ...
 end                          
 
 
@@ -438,6 +441,9 @@ function Block:destroy()
    elseif self.state == 1 then
        table.remove(BlocksTable,self.id)
        table.insert(BlocksTable,self.id,0) 
+   end
+   if self.state <= 2 then
+      tmpCount = tmpCount + 1
    end
 end
 
