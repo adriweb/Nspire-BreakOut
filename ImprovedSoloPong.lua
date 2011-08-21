@@ -27,10 +27,12 @@ function reset()
     BlocksTable = {}
     BallsTable = {}
     FallingBonusTable = {}
+    
+    level = { {1,1,1}, {3,5,2}, {10,4,3} } -- level 1
     -- Random level : 
-  for i=1,15 do
-     table.insert(level,{math.random(1,10),math.random(1,10),math.random(1,3)})
-  end
+    for i=1,35 do
+       table.insert(level,{math.random(1,14),math.random(1,9),math.random(1,3)})
+    end
 end
 
 
@@ -127,29 +129,57 @@ function on.charIn(ch)
 end
 
 function on.mouseMove(x,y)
-   paddle.x = x
+   if not pause then paddle.x = x end
 end
 
 function on.paint(gc)
-    gc:setColorRGB(0,0,0)
-  if not gameover then
+
+  gc:setColorRGB(0,0,0)
+  if not gameover and not needHelp then
+    tmpCount = 0
     
-    local tmpCount = 0
     if score == -1 then score = 0 end
     if not pause then score = score + 0.2 end
         
+    ballStuff(gc)
+    bonusStuff(gc)
+     
+   elseif gameover then
+      drawCenteredString(gc,"Game Over ! Score = " .. tostring(math.floor(score)))
+   elseif win then
+      drawCenteredString(gc,"You won ! Score = " .. tostring(math.floor(score)))
+   elseif needHelp then
+      --todo : help screen
+   end
+end
+
+function on.arrowKey(key)
+    if key == "right" and paddle.x < platform.window:width()-20 then
+        paddle.dx = 8
+    elseif key == "left" and paddle.x >= 25 then
+        paddle.dx = -8
+    end
+end
+
+
+-------------------------------   
+--------on.paint stuff---------     
+------------------------------- 
+          
+function ballStuff(gc)
     for _, ball in pairs(BallsTable) do
        
        if ball.y+ball.radius > platform.window:height()-15 then
-            if not ball:intersectsPaddle() then
-              table.remove(BallsTable,ball.id)
-              if #BallsTable < 1 then gameover = true end
-            else
-               ball:PaddleChock()
-               if not ball:touchedEdgesOfPaddle() then paddle:goGlow(12) end
-               if ball.x > 10 and ball.x > pww()-10 then ball.x = ball.x + math.random(-1,1)*0.5*ball:howFarAwayFromTheCenterOfThePaddle() end
-            end
-        end
+          if not ball:intersectsPaddle() then
+             table.remove(BallsTable,ball.id)
+             if #BallsTable < 1 then gameover = true end
+          else
+             ball:PaddleChock()
+             if not ball:touchedEdgesOfPaddle() then paddle:goGlow(12) end
+             local increment = 0.5*(-1+test(ball.speedX > 0))*math.abs(ball:howFarAwayFromTheCenterOfThePaddle())
+             if ball.x > 10 and ball.x < pww()-10 then ball.x = ball.x + increment end
+          end
+       end
         
         for _, block in pairs(BlocksTable) do
           if block ~= 0 then
@@ -158,7 +188,6 @@ function on.paint(gc)
                 ball:BlockChock(block)
                 block:destroy()
             end
-	        --block:update()  -- tout est dans le block:paint(gc) normalement
             if pause then 
                gc:setAlpha(127)
             end
@@ -172,33 +201,39 @@ function on.paint(gc)
           end
         end
          
-         if not pause then
-         
-            ball:update() 
-         
-            if paddle.dx > 0 then
-                paddle.x = paddle.x + paddle.dx
-                paddle.dx = paddle.dx - 1 -- a augmenter si on-calc
-            elseif paddle.dx < 0 then
-                paddle.x = paddle.x + paddle.dx
-                paddle.dx = paddle.dx + 1 -- a augmenter si on-calc
-            end
-            
+        if not pause then
+           ball:update() 
+           paddleStuff(gc)
         end       
         
         if pause then 
            gc:setAlpha(127)
         end
-           ball:paint(gc)
-           paddle:paint(gc)
+        
+        ball:paint(gc)
+        paddle:paint(gc)
+           
         if pause then
            gc:setAlpha(255)
            drawCenteredString(gc,"... Pause ...")
         end
         
         if not pause and math.random(1,300) == 100 then table.insert(FallingBonusTable,Bonus(math.random(1,pww()),0,bonusTypes[math.random(1,#bonusTypes)])) end
-    end 
-        for _, bonus in pairs(FallingBonusTable) do
+    end
+end
+
+function paddleStuff(gc)
+   if paddle.dx > 0 then
+                paddle.x = paddle.x + paddle.dx
+                paddle.dx = paddle.dx - 1 -- a augmenter si on-calc
+            elseif paddle.dx < 0 then
+                paddle.x = paddle.x + paddle.dx
+                paddle.dx = paddle.dx + 1 -- a augmenter si on-calc
+   end
+end
+
+function bonusStuff(gc)
+   for _, bonus in pairs(FallingBonusTable) do
         
              if pause then gc:setAlpha(127) end
              bonus:paint(gc)
@@ -216,21 +251,7 @@ function on.paint(gc)
              if not pause then bonus.timeLeft = bonus.timeLeft - 1 end
              if bonus.timeLeft < 2 then table.remove(BonusTable,1) ; resetBonus(bonus) end
         end 
-   elseif gameover then
-      drawCenteredString(gc,"Game Over ! Score = " .. tostring(math.floor(score)))
-   elseif win then
-      drawCenteredString(gc,"You won ! Score = " .. tostring(math.floor(score)))
-   end
 end
-
-function on.arrowKey(key)
-    if key == "right" and paddle.x < platform.window:width()-20 then
-        paddle.dx = 8
-    elseif key == "left" and paddle.x >= 25 then
-        paddle.dx = -8
-    end
-end
-                            
                             
 -------------------------------   
 ----------Ball Class-----------     
@@ -297,7 +318,7 @@ function Ball:touchedEdgesOfPaddle()
 end
 
 function Ball:howFarAwayFromTheCenterOfThePaddle()
-   return math.abs(self.x-paddle.x)
+   return self.x-paddle.x
 end
 
 function Ball:PaddleChock()
