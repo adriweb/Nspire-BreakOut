@@ -3,15 +3,16 @@ BlockHeight=10
 currentLevel={numberOfBlocks,xPositions={},yPositions={},blocksStates={}}possibleStates={"breakable","solid","unbreakable"}bonusTypes={"PaddleGrow","PaddleShrink","BallClone","BallGrow","BallShrink"}level={{1,1,1},{3,5,2},{10,4,3}}function reset()win=false
 gameover=false
 pause=false
+tmpCount=0
 lives=3
 score=-1
-BonusTable={}BlocksTable={}BallsTable={}FallingBonusTable={}level={{1,1,1},{3,5,2},{10,4,3}}for e=1,35 do
+BonusTable={}BlocksTable={}BallsTable={}FallingBonusTable={}level={{1,1,1},{3,5,2},{10,4,3}}for e=1,20 do
 table.insert(level,{math.random(1,14),math.random(1,9),math.random(1,3)})end
 end
-function fillRoundRect(a,d,n,l,t,e)if e>t/2 then e=t/2 end
-a:fillPolygon({(d-l/2),(n-t/2+e),(d+l/2),(n-t/2+e),(d+l/2),(n+t/2-e),(d-l/2),(n+t/2-e),(d-l/2),(n-t/2+e)})a:fillPolygon({(d-l/2-e+1),(n-t/2),(d+l/2-e+1),(n-t/2),(d+l/2-e+1),(n+t/2),(d-l/2+e),(n+t/2),(d-l/2+e),(n-t/2)})d=d-l/2
-n=n-t/2
-a:fillArc(d+l-(e*2),n+t-(e*2),e*2,e*2,1,-91);a:fillArc(d+l-(e*2),n,e*2,e*2,-2,91);a:fillArc(d,n,e*2,e*2,85,95);a:fillArc(d,n+t-(e*2),e*2,e*2,180,95);end
+function fillRoundRect(a,n,d,l,t,e)if e>t/2 then e=t/2 end
+a:fillPolygon({(n-l/2),(d-t/2+e),(n+l/2),(d-t/2+e),(n+l/2),(d+t/2-e),(n-l/2),(d+t/2-e),(n-l/2),(d-t/2+e)})a:fillPolygon({(n-l/2-e+1),(d-t/2),(n+l/2-e+1),(d-t/2),(n+l/2-e+1),(d+t/2),(n-l/2+e),(d+t/2),(n-l/2+e),(d-t/2)})n=n-l/2
+d=d-t/2
+a:fillArc(n+l-(e*2),d+t-(e*2),e*2,e*2,1,-91);a:fillArc(n+l-(e*2),d,e*2,e*2,-2,91);a:fillArc(n,d,e*2,e*2,85,95);a:fillArc(n,d+t-(e*2),e*2,e*2,180,95);end
 function clearWindow(e)e:setColorRGB(255,255,255)e:fillRect(0,0,platform.window:width(),platform.window:height())end
 function test(e)return e and 1 or 0
 end
@@ -40,8 +41,8 @@ end
 end
 function on.mouseMove(e,n)if not pause then paddle.x=e end
 end
-function on.paint(e)e:setColorRGB(0,0,0)if not gameover and not needHelp then
-tmpCount=0
+function on.paint(e)e:setColorRGB(0,0,0)if tmpCount>=#BlocksTable and tmpCount>0 then win=true end
+if not gameover and not needHelp and not win then
 if score==-1 then score=0 end
 if not pause then score=score+.2 end
 ballStuff(e)bonusStuff(e)elseif gameover then
@@ -55,27 +56,25 @@ elseif e=="left"and paddle.x>=25 then
 paddle.dx=-8
 end
 end
+function on.enterKey()print("#BallsTable = "..#BallsTable)print("#BonusTable = "..#BonusTable)print("#BlocksTable = "..#BlocksTable)print("tmpCount = "..tmpCount)end
 function ballStuff(n)for d,e in pairs(BallsTable)do
+if 2*e.radius-2<0 then e.radius=5 end
 if e.y+e.radius>platform.window:height()-15 then
 if not e:intersectsPaddle()then
 table.remove(BallsTable,e.id)if#BallsTable<1 then gameover=true end
 else
 e:PaddleChock()if not e:touchedEdgesOfPaddle()then paddle:goGlow(12)end
-local n=.5*(-1+test(e.speedX>0))*math.abs(e:howFarAwayFromTheCenterOfThePaddle())if e.x>10 and e.x<pww()-10 then e.x=e.x+n end
+local n=.7*(-1+test(e.speedX>0))*math.abs(e:howFarAwayFromTheCenterOfThePaddle())if e.x>10 and e.x<pww()-10 then e.x=e.x+n end
 end
 end
 for t,d in pairs(BlocksTable)do
 if d~=0 then
-if d.state==3 then tmpCount=tmpCount+1 end
 if e:intersectsBlock(d)then
 e:BlockChock(d)d:destroy()end
 if pause then
 n:setAlpha(127)end
 d:paint(n)if pause then
 n:setAlpha(255)end
-else
-tmpCount=tmpCount+1
-if tmpCount==#Block then win=true end
 end
 end
 if not pause then
@@ -153,7 +152,7 @@ self.speedY=-self.speedY
 end
 self.x=self.x+self.speedX
 self.y=self.y+self.speedY
-if self.y+self.radius>pwh()+10 or self.x<-5 or self.x>pww()+5 then gameover=true end
+if self.y+self.radius>pwh()+10 or self.y<-1 or self.x<-5 or self.x>pww()+5 then table.remove(BallsTable,self.id)end
 end
 Paddle=class()function Paddle:init(t,d,e,n)self.x=t
 self.size=d
@@ -207,6 +206,9 @@ function Block:destroy()if self.state==2 then
 self.state=1
 table.remove(BlocksTable,self.id)table.insert(BlocksTable,self.id,self)elseif self.state==1 then
 table.remove(BlocksTable,self.id)table.insert(BlocksTable,self.id,0)end
+if self.state<=2 then
+tmpCount=tmpCount+1
+end
 end
 Bonus=class()function Bonus:init(n,d,e)self.x=n
 self.y=d
