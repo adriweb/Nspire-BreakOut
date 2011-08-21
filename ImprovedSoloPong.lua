@@ -27,12 +27,10 @@ function reset()
     BlocksTable = {}
     BallsTable = {}
     FallingBonusTable = {}
-    
-    level =   { {1,1,1}, {3,5,2}, {10,4,3} } -- level 1
     -- Random level : 
-    for i=1,35 do
-       table.insert(level,{math.random(1,14),math.random(1,9),math.random(1,3)})
-    end
+  for i=1,15 do
+     table.insert(level,{math.random(1,10),math.random(1,10),math.random(1,3)})
+  end
 end
 
 
@@ -102,7 +100,7 @@ function on.create()
          newPaddleY = newPaddleY+1
     end
     paddle = Paddle(0.5*platform.window:width()+newPaddleY,40,0,"")
-    aBall = Ball(math.random(10,platform.window:width()-10),platform.window:height()-26,-4,-4,#BallsTable+1)
+    aBall = Ball(math.random(10,platform.window:width()-10),platform.window:height()-26,-1,-1,#BallsTable+1)
     table.insert(BallsTable,aBall)
     for i, blockTable in pairs(level) do
          table.insert(BlocksTable,Block(20*blockTable[1], 12*blockTable[2], 20, 12, blockTable[3], #BlocksTable+1))
@@ -123,6 +121,13 @@ function on.charIn(ch)
     if ch == "r" then
         on.create()
     end
+    if ch == "h" then
+       needHelp = not needHelp
+    end
+end
+
+function on.mouseMove(x,y)
+   paddle.x = x
 end
 
 function on.paint(gc)
@@ -142,7 +147,7 @@ function on.paint(gc)
             else
                ball:PaddleChock()
                if not ball:touchedEdgesOfPaddle() then paddle:goGlow(12) end
-               if ball.x > 10 and ball.x < pww()-10 then ball.x = ball.x + math.random(-1,1)*0.5*ball:howFarAwayFromTheCenterOfThePaddle() end
+               if ball.x > 10 and ball.x > pww()-10 then ball.x = ball.x + math.random(-1,1)*0.5*ball:howFarAwayFromTheCenterOfThePaddle() end
             end
         end
         
@@ -220,9 +225,9 @@ end
 
 function on.arrowKey(key)
     if key == "right" and paddle.x < platform.window:width()-20 then
-        paddle.dx = 7
+        paddle.dx = 8
     elseif key == "left" and paddle.x >= 25 then
-        paddle.dx = -7
+        paddle.dx = -8
     end
 end
                             
