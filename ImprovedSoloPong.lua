@@ -26,6 +26,7 @@ function reset()
     tmpCount = 0
     lives = 3
     score = -1
+    secureNbr = 0
     BonusTable = {}    
     BlocksTable = {}
     BallsTable = {}
@@ -33,8 +34,8 @@ function reset()
         
     level = { {1,1,1}, {3,5,2}, {10,4,3} } -- level 1
     -- Random level : 
-    for i=1,5 do
-       table.insert(level,{math.random(1,14),math.random(1,9),randomAndCount()})
+    for i=1,20 do
+       table.insert(level,{math.random(0,12),math.random(0,10),randomAndCount()})
     end
     for i, blockTable in pairs(level) do
          table.insert(BlocksTable,Block(20*blockTable[1], 12*blockTable[2], 20, 12, blockTable[3], #BlocksTable+1))
@@ -109,11 +110,11 @@ function on.create()
     gameover = false
     on.resize()
     local newPaddleY = 0
-    while (math.floor(0.5*platform.window:width())+newPaddleY)%4 ~= 0 do
+    while (math.floor(0.5*platform.window:width()-29)+newPaddleY)%4 ~= 0 do
          newPaddleY = newPaddleY+1
     end
-    paddle = Paddle(0.5*platform.window:width()+newPaddleY,40,0,"")
-    aBall = Ball(math.random(10,platform.window:width()-10),platform.window:height()-26,-1,-1,#BallsTable+1)
+    paddle = Paddle(0.5*platform.window:width()-29+newPaddleY,40,0,"")
+    aBall = Ball(math.random(10,platform.window:width()-10-XLimit),platform.window:height()-26,-1,-1,#BallsTable+1)
     table.insert(BallsTable,aBall)
     timer.start(0.01)
 end
@@ -124,6 +125,10 @@ end
 
 function on.resize()
     --platform.window:setPreferredSize(0,0)
+    --TODO routine to know if running on calc or software/docPlayer
+    isCalc = (pww() < 321)
+    print("isCalc = " .. tostring(isCalc) .. " (pww = " .. pww() .. ")")
+    XLimit = isCalc and 58 or math.ceil(58*pww()/320)
 end
 
 function on.charIn(ch)
@@ -137,14 +142,16 @@ function on.charIn(ch)
 end
 
 function on.mouseMove(x,y)
-   if not pause then paddle.x = x end
+   if not pause and x<platform.window:width()-XLimit-paddle.size*0.5 and x>paddle.size*0.5 then paddle.x = x end
 end
 
 function on.paint(gc)
   gc:setColorRGB(0,0,0)
+  if #BallsTable < 1 or secureNbr > 10 then gameover = true end
   if tmpCount >= totalBlocksToDestroy and tmpCount > 0 and totalBlocksToDestroy > 0 then win = true end  -- a revoir
   if not gameover and not needHelp and not win then
-    
+  
+    gc:drawLine(platform.window:width()-XLimit,0,platform.window:width()-XLimit,platform.window:height())
     if score == -1 then score = 0 end
     if not pause then score = score + 0.2 end
         
@@ -161,7 +168,7 @@ function on.paint(gc)
 end
 
 function on.arrowKey(key)
-    if key == "right" and paddle.x < platform.window:width()-20 then
+    if key == "right" and paddle.x < platform.window:width()-20-XLimit then
         paddle.dx = 8
     elseif key == "left" and paddle.x >= 25 then
         paddle.dx = -8
@@ -169,7 +176,11 @@ function on.arrowKey(key)
 end
 
 function on.enterKey()
-    print("#BallsTable = " .. #BallsTable) 
+    print("------------------")
+    print("#BallsTable = " .. #BallsTable)
+    for _, ball in pairs(BallsTable) do
+       print("    ball." .. ball.id .. " : x=" .. ball.x .. " y=" .. ball.y)
+    end
     print("#BonusTable = " .. #BonusTable)
     print("#BlocksTable = " .. #BlocksTable)
     print("tmpCount = " .. tmpCount)
@@ -229,7 +240,7 @@ function ballStuff(gc)
            drawCenteredString(gc,"... Pause ...")
         end
         
-        if not pause and math.random(1,300) == 100 then table.insert(FallingBonusTable,Bonus(math.random(1,pww()),0,bonusTypes[math.random(1,#bonusTypes)])) end
+        if not pause and math.random(1,300) == 100 then table.insert(FallingBonusTable,Bonus(math.random(5,pww()-62),0,bonusTypes[math.random(1,#bonusTypes)])) end
     end
 end
 
@@ -340,7 +351,7 @@ end
 
 function Ball:update()
     -- Si on collisionne sur les bords horizontaux, on change de direction sur X
-    if self.x - self.radius < 0 or self.x + self.radius > platform.window:width() then
+    if self.x - self.radius < 0 or self.x + self.radius > platform.window:width()-XLimit then
         self.speedX = -self.speedX
     end
     -- Si on collisionne sur les bords verticaux, on change de direction sur Y
@@ -351,7 +362,7 @@ function Ball:update()
     self.x = self.x + self.speedX
     self.y = self.y + self.speedY 
     
-    if self.y+self.radius > pwh()+10 or self.y < -1 or self.x < -5 or self.x > pww()+5 then table.remove(BallsTable,self.id) end    -- just in case ...
+    if self.y > pwh()+5 or self.y < -1 or self.x < -5 or self.x > platform.window:width()-XLimit then secureNbr = secureNbr + 1 ; table.remove(BallsTable,self.id) end    -- just in case ...
 end                          
 
 
@@ -378,7 +389,7 @@ function Paddle:grabBonus(bonus)
     elseif bonus.bonusType == "PaddleShrink" then
         self.size = self.size - 8
     elseif bonus.bonusType == "BallClone" then
-        table.insert(BallsTable,Ball(math.random(1,platform.window:width()),platform.window:height()-26,-1,-1,#BallsTable+1))
+        table.insert(BallsTable,Ball(math.random(1,platform.window:width()-XLimit),platform.window:height()-26,-1,-1,#BallsTable+1))
     elseif bonus.bonusType == "BallGrow" then
         for _, ball in pairs(BallsTable) do 
              if ball.y-ball.radius < 5 then
