@@ -4,6 +4,7 @@ totalBlocksToDestroy=0
 currentLevel={numberOfBlocks,xPositions={},yPositions={},blocksStates={}}possibleStates={"breakable","solid","unbreakable"}bonusTypes={"PaddleGrow","PaddleShrink","BallClone","BallGrow","BallShrink"}level={{1,1,1},{3,5,2},{10,4,3}}function reset()win=false
 gameover=false
 pause=false
+waitContinue=false
 tmpCount=0
 lives=3
 score=-1
@@ -18,27 +19,27 @@ function randomAndCount()theRand=math.random(1,3)if theRand==3 then totalBlocksT
 if theRand==2 then totalBlocksToDestroy=totalBlocksToDestroy-1 end
 return theRand
 end
-function fillRoundRect(t,n,l,d,a,e)if e>a/2 then e=a/2 end
-t:fillPolygon({(n-d/2),(l-a/2+e),(n+d/2),(l-a/2+e),(n+d/2),(l+a/2-e),(n-d/2),(l+a/2-e),(n-d/2),(l-a/2+e)})t:fillPolygon({(n-d/2-e+1),(l-a/2),(n+d/2-e+1),(l-a/2),(n+d/2-e+1),(l+a/2),(n-d/2+e),(l+a/2),(n-d/2+e),(l-a/2)})n=n-d/2
-l=l-a/2
-t:fillArc(n+d-(e*2),l+a-(e*2),e*2,e*2,1,-91);t:fillArc(n+d-(e*2),l,e*2,e*2,-2,91);t:fillArc(n,l,e*2,e*2,85,95);t:fillArc(n,l+a-(e*2),e*2,e*2,180,95);end
+function fillRoundRect(t,l,a,d,n,e)if e>n/2 then e=n/2 end
+t:fillPolygon({(l-d/2),(a-n/2+e),(l+d/2),(a-n/2+e),(l+d/2),(a+n/2-e),(l-d/2),(a+n/2-e),(l-d/2),(a-n/2+e)})t:fillPolygon({(l-d/2-e+1),(a-n/2),(l+d/2-e+1),(a-n/2),(l+d/2-e+1),(a+n/2),(l-d/2+e),(a+n/2),(l-d/2+e),(a-n/2)})l=l-d/2
+a=a-n/2
+t:fillArc(l+d-(e*2),a+n-(e*2),e*2,e*2,1,-91);t:fillArc(l+d-(e*2),a,e*2,e*2,-2,91);t:fillArc(l,a,e*2,e*2,85,95);t:fillArc(l,a+n-(e*2),e*2,e*2,180,95);end
 function clearWindow(e)e:setColorRGB(255,255,255)e:fillRect(0,0,platform.window:width(),platform.window:height())end
 function test(e)return e and 1 or 0
 end
 function screenRefresh()return platform.window:invalidate()end
 function pww()return platform.window:width()end
 function pwh()return platform.window:height()end
-function drawPoint(e,n,l)e:fillRect(x,l,1,1)end
+function drawPoint(e,a,l)e:fillRect(x,l,1,1)end
 function drawCenteredString(l,e)l:drawString(e,(pww()-l:getStringWidth(e))/2,pwh()/2,"middle")end
 function on.create()reset()pause=false
 gameover=false
-on.resize()local e=0
-while(math.floor(.5*platform.window:width()-29)+e)%4~=0 do
-e=e+1
+on.resize()newPaddleY=0
+while(math.floor(.5*platform.window:width()-29)+newPaddleY)%4~=0 do
+newPaddleY=newPaddleY+1
 end
-paddle=Paddle(.5*platform.window:width()-29+e,40,0,"")aBall=Ball(math.random(10,platform.window:width()-10-XLimit),platform.window:height()-26,-1,-1,#BallsTable+1)table.insert(BallsTable,aBall)timer.start(.01)end
+paddle=Paddle(.5*platform.window:width()-29+newPaddleY,40,0,"")aBall=Ball(math.random(10,platform.window:width()-10-XLimit),platform.window:height()-26,-1,-1,#BallsTable+1)table.insert(BallsTable,aBall)timer.start(.01)end
 function on.timer()platform.window:invalidate()end
-function on.resize()isCalc=(pww()<321)print("isCalc = "..tostring(isCalc).." (pww = "..pww()..")")XLimit=isCalc and 58 or math.ceil(58*pww()/320)end
+function on.resize()platform.window:setPreferredSize(0,0)isCalc=(pww()<321)XLimit=isCalc and 58 or math.ceil(58*pww()/320)fixedX1=4+.5*(pww()-XLimit+pww()-platform:gc():getStringWidth("Nspire"))fixedX2=6+.5*(pww()-XLimit+pww()-platform.gc():getStringWidth("BreakOut"))end
 function on.charIn(e)if e=="p"then pause=not pause end
 if e=="r"then
 on.create()end
@@ -48,10 +49,20 @@ end
 end
 function on.mouseMove(e,l)if not pause and e<platform.window:width()-XLimit-paddle.size*.5 and e>paddle.size*.5 then paddle.x=e end
 end
-function on.paint(e)e:setColorRGB(0,0,0)if#BallsTable<1 or secureNbr>10 then gameover=true end
+function on.paint(e)e:setColorRGB(0,0,0)if#BallsTable<1 or secureNbr>10 then
+lives=lives-1
+if lives<1 then
+gameover=true
+else
+paddle.x=.5*platform.window:width()-29+newPaddleY
+aBall=Ball(paddle.x,platform.window:height()-26,-1,-1,#BallsTable+1)table.insert(BallsTable,aBall)pause=true
+waitContinue=true
+end
+end
+if lives<1 then gameover=true end
 if tmpCount>=totalBlocksToDestroy and tmpCount>0 and totalBlocksToDestroy>0 then win=true end
 if not gameover and not needHelp and not win then
-e:drawLine(platform.window:width()-XLimit,0,platform.window:width()-XLimit,platform.window:height())if score==-1 then score=0 end
+sideBarStuff(e)if score==-1 then score=0 end
 if not pause then score=score+.2 end
 ballStuff(e)bonusStuff(e)elseif gameover then
 drawCenteredString(e,"Game Over ! Score = "..tostring(math.floor(score)))elseif win then
@@ -66,24 +77,24 @@ end
 end
 function on.enterKey()print("------------------")print("#BallsTable = "..#BallsTable)for l,e in pairs(BallsTable)do
 print("    ball."..e.id.." : x="..e.x.." y="..e.y)end
-print("#BonusTable = "..#BonusTable)print("#BlocksTable = "..#BlocksTable)print("tmpCount = "..tmpCount)print("totalBlocksToDestroy = "..totalBlocksToDestroy)end
-function ballStuff(l)for n,e in pairs(BallsTable)do
+print("#BonusTable = "..#BonusTable)print("#BlocksTable = "..#BlocksTable)print("tmpCount = "..tmpCount)print("totalBlocksToDestroy = "..totalBlocksToDestroy)print("Lives = "..lives)end
+function sideBarStuff(e)e:drawLine(platform.window:width()-XLimit,0,platform.window:width()-XLimit,platform.window:height())e:setFont("serif","r",10)e:drawString("Nspire",fixedX1,pwh()-63,"top")e:drawString("BreakOut",fixedX2,pwh()-49,"top")e:drawString("Adriweb",4+fixedX2,pwh()-22,"top")end
+function ballStuff(l)for a,e in pairs(BallsTable)do
 if 2*e.radius-2<0 then e.radius=5 end
 if e.y+e.radius>platform.window:height()-15 then
 if not e:intersectsPaddle()then
-table.remove(BallsTable,e.id)if#BallsTable<1 then gameover=true end
-else
+table.remove(BallsTable,e.id)else
 e:PaddleChock()if not e:touchedEdgesOfPaddle()then paddle:goGlow(12)end
 local l=.7*(-1+test(e.speedX>0))*math.abs(e:howFarAwayFromTheCenterOfThePaddle())if e.x>10 and e.x<pww()-10 then e.x=e.x+l end
 end
 end
-for a,n in pairs(BlocksTable)do
-if n~=0 then
-if e:intersectsBlock(n)then
-e:BlockChock(n)n:destroy()end
+for n,a in pairs(BlocksTable)do
+if a~=0 then
+if e:intersectsBlock(a)then
+e:BlockChock(a)a:destroy()end
 if pause then
 l:setAlpha(127)end
-n:paint(l)if pause then
+a:paint(l)if pause then
 l:setAlpha(255)end
 end
 end
@@ -92,8 +103,11 @@ e:update()paddleStuff(l)end
 if pause then
 l:setAlpha(127)end
 e:paint(l)paddle:paint(l)if pause then
-l:setAlpha(255)drawCenteredString(l,"... Pause ...")end
-if not pause and math.random(1,300)==100 then table.insert(FallingBonusTable,Bonus(math.random(5,pww()-62),0,bonusTypes[math.random(1,#bonusTypes)]))end
+l:setAlpha(255)if waitContinue then
+l:drawString(lives.." balls left... (Press 'P')",.5*(pww()-l:getStringWidth(lives.." balls left... (Press 'P')")-20),pwh()/2+20,"top")else
+drawCenteredString(l,"... Pause ...")end
+end
+if not pause and math.random(1,300)==100 then table.insert(FallingBonusTable,Bonus(math.random(5,pww()-70),0,bonusTypes[math.random(1,#bonusTypes)]))end
 end
 end
 function paddleStuff(e)if paddle.dx>0 then
@@ -104,22 +118,22 @@ paddle.x=paddle.x+paddle.dx
 paddle.dx=paddle.dx+1
 end
 end
-function bonusStuff(l)for n,e in pairs(FallingBonusTable)do
+function bonusStuff(l)for a,e in pairs(FallingBonusTable)do
 if pause then l:setAlpha(127)end
 e:paint(l)if pause then l:setAlpha(255)end
 if not pause then e:update()end
 if e:fallsOnPaddle()then paddle:grabBonus(e);e:destroy()end
 if e.y>platform.window:height()-16 and not e:fallsOnPaddle()then e:destroy()end
 end
-for n,e in pairs(BonusTable)do
+for a,e in pairs(BonusTable)do
 l:setColorRGB(0,0,255)if e.timeLeft<666 then l:setColorRGB(0,0,0)end
 if e.timeLeft<333 then l:setColorRGB(255,0,0)end
-l:drawString(e.bonusType.." : "..tostring(e.timeLeft),0,n*12,"top")if not pause then e.timeLeft=e.timeLeft-1 end
+l:drawString(e.bonusType.." : "..tostring(e.timeLeft),0,a*12,"top")if not pause then e.timeLeft=e.timeLeft-1 end
 if e.timeLeft<2 then table.remove(BonusTable,1);resetBonus(e)end
 end
 end
-Ball=class()function Ball:init(a,n,d,l,e)self.x=a
-self.y=n
+Ball=class()function Ball:init(n,a,d,l,e)self.x=n
+self.y=a
 self.speedX=d
 self.speedY=l
 self.radius=5
@@ -164,10 +178,10 @@ self.x=self.x+self.speedX
 self.y=self.y+self.speedY
 if self.y>pwh()+5 or self.y<-1 or self.x<-5 or self.x>platform.window:width()-XLimit+2 then secureNbr=secureNbr+1;table.remove(BallsTable,self.id)end
 end
-Paddle=class()function Paddle:init(e,l,n,a)self.x=e
+Paddle=class()function Paddle:init(e,l,a,n)self.x=e
 self.size=l
-self.dx=n
-self.bonus=a
+self.dx=a
+self.bonus=n
 self.glow=0
 end
 function Paddle:grabBonus(e)e.timeLeft=1e3
@@ -198,10 +212,10 @@ function Paddle:paint(e)e:setColorRGB(0,0,200)e:drawImage(image.copy(paddleImg,(
 e:setColorRGB(255,100,0)fillRoundRect(e,self.x-1,platform.window:height()-13,self.size-.5*self.size,3,1)self.glow=self.glow-1
 end
 end
-Block=class()function Block:init(n,l,e,a,d,t)self.x=n
+Block=class()function Block:init(a,l,e,n,d,t)self.x=a
 self.y=l
 self.w=e
-self.h=a
+self.h=n
 self.state=d
 self.id=t
 end
@@ -218,7 +232,7 @@ if self.state<=2 then
 tmpCount=tmpCount+1
 end
 end
-Bonus=class()function Bonus:init(n,l,e)self.x=n
+Bonus=class()function Bonus:init(a,l,e)self.x=a
 self.y=l
 self.bonusType=e
 self.timeLeft=9999
@@ -243,4 +257,4 @@ if not e.radius==4 then e.radius=e.radius+5 end
 end
 end
 end
-paddleImg = image.new("\046\0\0\0\010\0\0\0\0\0\0\0\092\0\0\0\016\0\001\0alal\047\132\080\132\081\136\115\136\149\140\149\140\184\140\184\140alalalalalalalalalalalalalalalalalalalalalalalalalal\184\140\184\140\149\140\149\140\116\136\081\136\080\132\080\132alalal\047\132\080\132\081\136\214\152\153\177\026\190\059\194\092\194\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\198\092\194\059\194\026\190\026\190\055\161\115\136\081\136\080\132al\047\132\047\132\081\136\055\161\223\247\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\188\210\115\136\080\132\047\132\047\132\047\132\115\136\218\226\123\251\123\247\123\247\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\243\123\247\123\251\123\251\055\161\080\132\048\132\047\132\080\132\116\136\115\230\115\242\115\230\115\230\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\222\115\230\115\242\115\242\085\177\081\136\080\132\047\132\080\132\115\136\211\204\140\229\140\229\140\217\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\205\140\217\140\217\140\229\140\229\211\152\081\136\080\132\047\132\080\132\115\136\116\136\204\204\198\228\132\220\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\212\132\220\132\224\200\224\179\164\115\136\081\136\080\132al\080\132\115\136\116\136\052\185\147\229\055\161\056\169\250\144\250\144\250\144\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\217\140\250\144\250\144\217\152\217\140\181\221\147\205\149\140\115\136\081\136alalal\115\136\116\136\179\164\045\229\214\152\217\140\217\140\217\140alalalalalalalalalalalalalalalalalalalalalalalalalal\217\140\217\140\217\140\214\152\045\229\179\164\116\136\115\136alalalalalalal\204\176\137\212\177\172alalalalalalalalalalalalalalalalalalalalalalalalalalalalalal\179\164\137\212\204\176alalalalal")
+paddleImg=image.new(".\0\0\0\n\0\0\0\0\0\0\0\\\0\0\0\16\0\1\0alal/„P„Qˆsˆ•Œ•Œ¸Œ¸Œalalalalalalalalalalalalalalalalalalalalalalalalalal¸Œ¸Œ•Œ•ŒtˆQˆP„P„alalal/„P„QˆÖ˜™±\26¾;Â\\Â\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Æ\\Â;Â\26¾\26¾7¡sˆQˆP„al/„/„Qˆ7¡ß÷ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ¼ÒsˆP„/„/„/„sˆÚâ{û{÷{÷{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{ó{÷{û{û7¡P„0„/„P„tˆsæsòsæsæsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsÞsæsòsòU±QˆP„/„P„sˆÓÌŒåŒåŒÙŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÍŒÙŒÙŒåŒåÓ˜QˆP„/„P„sˆtˆÌÌÆä„Ü„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ô„Ü„àÈà³¤sˆQˆP„alP„sˆtˆ4¹“å7¡8©úúúÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒÙŒúúÙ˜ÙŒµÝ“Í•ŒsˆQˆalalalsˆtˆ³¤-åÖ˜ÙŒÙŒÙŒalalalalalalalalalalalalalalalalalalalalalalalalalalÙŒÙŒÙŒÖ˜-å³¤tˆsˆalalalalalalalÌ°‰Ô±¬alalalalalalalalalalalalalalalalalalalalalalalalalalalalalal³¤‰ÔÌ°alalalalal")
