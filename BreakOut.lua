@@ -1,6 +1,6 @@
 -- Adriweb (with help from Levak), 2011
 -- BreakOut "Casse Brique" Game
--- v1.5.2a                                 
+-- v1.6a                                 
                                  
 -------------------------------   
 ------------Globals------------
@@ -110,7 +110,7 @@ function on.create()
     pause = false
     gameover = false
     on.resize()
-    local newPaddleY = 0
+    newPaddleY = 0
     while (math.floor(0.5*platform.window:width()-29)+newPaddleY)%4 ~= 0 do
          newPaddleY = newPaddleY+1
     end
@@ -155,7 +155,8 @@ function on.paint(gc)
       if lives < 1 then
           gameover = true
       else
-         aBall = Ball(math.random(10,platform.window:width()-10-XLimit),platform.window:height()-26,-1,-1,#BallsTable+1)
+        paddle.x = 0.5*platform.window:width()-29+newPaddleY
+        aBall = Ball(paddle.x,platform.window:height()-26,-1,-1,#BallsTable+1)
         table.insert(BallsTable,aBall)
         pause = true
         waitContinue = true
