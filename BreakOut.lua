@@ -1,6 +1,6 @@
 -- Adriweb (with help from Levak), 2011
 -- BreakOut "Casse Brique" Game
--- v1.6a                                 
+-- v1.7.5b                                 
                                  
 -------------------------------   
 ------------Globals------------
