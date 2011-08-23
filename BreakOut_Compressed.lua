@@ -138,7 +138,7 @@ l:setColorRGB(0,0,255)if e.timeLeft<666 then l:setColorRGB(0,0,0)end
 if e.timeLeft<333 then l:setColorRGB(255,0,0)end
 if e.timeLeft>2 then l:drawString(e.bonusType.." : "..tostring(e.timeLeft),0,a*12,"top")end
 if not pause and not(e.timeLeft<0)then e.timeLeft=e.timeLeft-1 end
-if e.timeLeft<2 and e.timeLeft~=-1 then resetBonus(e)end
+if e.timeLeft<2 and e.timeLeft~=-15 then resetBonus(e)end
 end
 end
 Ball=class()function Ball:init(t,a,n,e,l)self.x=t
@@ -249,7 +249,7 @@ end
 Bonus=class()function Bonus:init(l,a,e)self.x=l
 self.y=a
 self.bonusType=e
-self.timeLeft=-1
+self.timeLeft=-15
 end
 function Bonus:paint(e)e:setColorRGB(0,0,0)e:fillRect(self.x,self.y,15,15)e:setColorRGB(200,0,200)e:fillRect(self.x+1,self.y+1,13,13)e:setColorRGB(255,0,0)e:fillRect(self.x+2,self.y+2,11,11)end
 function Bonus:update()self.y=self.y+1

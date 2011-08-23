@@ -314,7 +314,7 @@ function bonusStuff(gc)
         if bonus.timeLeft < 333 then gc:setColorRGB(255,0,0) end
         if bonus.timeLeft > 2 then gc:drawString(bonus.bonusType .. " : " .. tostring(bonus.timeLeft),0,i*12,"top") end
         if not pause and not (bonus.timeLeft < 0) then bonus.timeLeft = bonus.timeLeft - 1 end
-        if bonus.timeLeft < 2 and bonus.timeLeft ~= -1 then resetBonus(bonus) end
+        if bonus.timeLeft < 2 and bonus.timeLeft ~= -15 then resetBonus(bonus) end
    end 
 end
                             
@@ -525,7 +525,7 @@ function Bonus:init(x, y, bonusType)
     self.x = x
     self.y = y
     self.bonusType = bonusType
-    self.timeLeft = -1
+    self.timeLeft = -15
 end
 
 function Bonus:paint(gc)
