@@ -23,6 +23,7 @@ function reset()
     win = false
     gameover = false
     pause = false
+    waitContinue = false
     tmpCount = 0
     lives = 3
     score = -1
@@ -124,11 +125,13 @@ function on.timer()
 end
 
 function on.resize()
-    --platform.window:setPreferredSize(0,0)
+    platform.window:setPreferredSize(0,0)
     --TODO routine to know if running on calc or software/docPlayer
     isCalc = (pww() < 321)
-    print("isCalc = " .. tostring(isCalc) .. " (pww = " .. pww() .. ")")
+    --print("isCalc = " .. tostring(isCalc) .. " (pww = " .. pww() .. ")")
     XLimit = isCalc and 58 or math.ceil(58*pww()/320)
+    fixedX1 = 4+0.5*(pww()-XLimit+pww()-platform:gc():getStringWidth("Nspire"))
+    fixedX2 = 6+0.5*(pww()-XLimit+pww()-platform.gc():getStringWidth("BreakOut"))
 end
 
 function on.charIn(ch)
@@ -147,11 +150,22 @@ end
 
 function on.paint(gc)
   gc:setColorRGB(0,0,0)
-  if #BallsTable < 1 or secureNbr > 10 then gameover = true end
+  if #BallsTable < 1 or secureNbr > 10 then
+      lives = lives - 1
+      if lives < 1 then
+          gameover = true
+      else
+         aBall = Ball(math.random(10,platform.window:width()-10-XLimit),platform.window:height()-26,-1,-1,#BallsTable+1)
+        table.insert(BallsTable,aBall)
+        pause = true
+        waitContinue = true
+      end
+  end
+  if lives < 1 then gameover = true end
   if tmpCount >= totalBlocksToDestroy and tmpCount > 0 and totalBlocksToDestroy > 0 then win = true end  -- a revoir
   if not gameover and not needHelp and not win then
   
-    gc:drawLine(platform.window:width()-XLimit,0,platform.window:width()-XLimit,platform.window:height())
+    sideBarStuff(gc)
     if score == -1 then score = 0 end
     if not pause then score = score + 0.2 end
         
@@ -185,12 +199,21 @@ function on.enterKey()
     print("#BlocksTable = " .. #BlocksTable)
     print("tmpCount = " .. tmpCount)
     print("totalBlocksToDestroy = " .. totalBlocksToDestroy)
+    print("Lives = " .. lives)
 end
 
 
 -------------------------------   
 --------on.paint stuff---------     
 ------------------------------- 
+
+function sideBarStuff(gc)
+    gc:drawLine(platform.window:width()-XLimit,0,platform.window:width()-XLimit,platform.window:height())
+    gc:setFont("serif","r",10)
+    gc:drawString("Nspire",fixedX1,pwh()-63,"top") 
+    gc:drawString("BreakOut",fixedX2,pwh()-49,"top")
+    gc:drawString("Adriweb",4+fixedX2,pwh()-22,"top")
+end
           
 function ballStuff(gc)
     for _, ball in pairs(BallsTable) do
@@ -198,7 +221,6 @@ function ballStuff(gc)
        if ball.y+ball.radius > platform.window:height()-15 then
           if not ball:intersectsPaddle() then
              table.remove(BallsTable,ball.id)
-             if #BallsTable < 1 then gameover = true end
           else
              ball:PaddleChock()
              if not ball:touchedEdgesOfPaddle() then paddle:goGlow(12) end
@@ -237,10 +259,14 @@ function ballStuff(gc)
            
         if pause then
            gc:setAlpha(255)
-           drawCenteredString(gc,"... Pause ...")
+           if waitContinue then 
+              gc:drawString(lives .. " balls left... (Press 'P')",0.5*(pww()-gc:getStringWidth(lives .. " balls left... (Press 'P')")-20),pwh()/2+20,"top") 
+           else
+               drawCenteredString(gc,"... Pause ...")
+           end
         end
         
-        if not pause and math.random(1,300) == 100 then table.insert(FallingBonusTable,Bonus(math.random(5,pww()-62),0,bonusTypes[math.random(1,#bonusTypes)])) end
+        if not pause and math.random(1,300) == 100 then table.insert(FallingBonusTable,Bonus(math.random(5,pww()-70),0,bonusTypes[math.random(1,#bonusTypes)])) end
     end
 end
 
