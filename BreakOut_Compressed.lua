@@ -137,13 +137,13 @@ for a,e in pairs(BonusTable)do
 l:setColorRGB(0,0,255)if e.timeLeft<666 then l:setColorRGB(0,0,0)end
 if e.timeLeft<333 then l:setColorRGB(255,0,0)end
 if e.timeLeft>2 then l:drawString(e.bonusType.." : "..tostring(e.timeLeft),0,a*12,"top")end
-if not pause and not(e.timeLeft<0)then e.timeLeft=e.timeLeft-1 end
+if not pause and not(e.timeLeft<1)then e.timeLeft=e.timeLeft-1 end
 if e.timeLeft<2 and e.timeLeft~=-15 then resetBonus(e)end
 end
 end
-Ball=class()function Ball:init(t,a,n,e,l)self.x=t
-self.y=a
-self.speedX=n
+Ball=class()function Ball:init(t,n,a,e,l)self.x=t
+self.y=n
+self.speedX=a
 self.speedY=e
 self.radius=5
 self.id=l
@@ -200,9 +200,9 @@ l.timeLeft=l.timeLeft+1e3
 end
 end
 if e.bonusType=="PaddleGrow"then
-self.size=self.size+8
+self.size=60
 elseif e.bonusType=="PaddleShrink"then
-self.size=self.size-8
+self.size=20
 elseif e.bonusType=="BallClone"then
 table.insert(BallsTable,Ball(math.random(1,platform.window:width()-XLimit),platform.window:height()-26,-1,-1,#BallsTable+1))elseif e.bonusType=="BallGrow"then
 for l,e in pairs(BallsTable)do
@@ -222,7 +222,7 @@ end
 end
 function Paddle:goGlow(e)self.glow=e
 end
-function Paddle:paint(e)e:setColorRGB(0,0,200)e:drawImage(image.copy(paddleImg,(self.size/image.width(paddleImg))*image.width(paddleImg)-2,image.height(paddleImg)),self.x-.5*self.size,platform.window:height()-14)if self.glow>0 then
+function Paddle:paint(e)e:setColorRGB(0,0,200)e:drawImage(image.copy(paddleImg,math.abs((self.size/image.width(paddleImg))*image.width(paddleImg)-2),math.abs(image.height(paddleImg))),self.x-.5*self.size,platform.window:height()-14)if self.glow>0 then
 e:setColorRGB(255,100,0)fillRoundRect(e,self.x-1,platform.window:height()-13,self.size-.5*self.size,3,1)self.glow=self.glow-1
 end
 end
@@ -257,9 +257,9 @@ end
 function Bonus:fallsOnPaddle()return(self.y+4>platform.window:height()-16)and(self.x>=paddle.x-paddle.size*.5-4 and(self.x<=paddle.x+paddle.size*.5+4))end
 function Bonus:destroy()self.y=self.y+pwh()table.remove(FallingBonusTable,1)end
 function resetBonus(e)if e.bonusType=="PaddleGrow"then
-paddle.size=paddle.size-8
+paddle.size=40
 elseif e.bonusType=="PaddleShrink"then
-paddle.size=paddle.size+8
+paddle.size=40
 elseif e.bonusType=="BallClone"then
 elseif e.bonusType=="BallGrow"then
 for l,e in pairs(BallsTable)do

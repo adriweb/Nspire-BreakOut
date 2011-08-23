@@ -313,7 +313,7 @@ function bonusStuff(gc)
         if bonus.timeLeft < 666 then gc:setColorRGB(0,0,0) end
         if bonus.timeLeft < 333 then gc:setColorRGB(255,0,0) end
         if bonus.timeLeft > 2 then gc:drawString(bonus.bonusType .. " : " .. tostring(bonus.timeLeft),0,i*12,"top") end
-        if not pause and not (bonus.timeLeft < 0) then bonus.timeLeft = bonus.timeLeft - 1 end
+        if not pause and not (bonus.timeLeft < 1) then bonus.timeLeft = bonus.timeLeft - 1 end
         if bonus.timeLeft < 2 and bonus.timeLeft ~= -15 then resetBonus(bonus) end
    end 
 end
@@ -435,9 +435,9 @@ function Paddle:grabBonus(bonus)
     end
         
     if bonus.bonusType == "PaddleGrow" then
-        self.size = self.size + 8
+        self.size = 60
     elseif bonus.bonusType == "PaddleShrink" then
-        self.size = self.size - 8
+        self.size = 20
     elseif bonus.bonusType == "BallClone" then
         table.insert(BallsTable,Ball(math.random(1,platform.window:width()-XLimit),platform.window:height()-26,-1,-1,#BallsTable+1))
     elseif bonus.bonusType == "BallGrow" then
@@ -464,7 +464,7 @@ end
 function Paddle:paint(gc)
     gc:setColorRGB(0,0,200)
     --fillRoundRect(gc,self.x,platform.window:height()-10,self.size,6,2)
-    gc:drawImage(image.copy(paddleImg, (self.size/image.width(paddleImg)) * image.width(paddleImg)-2, image.height(paddleImg)),self.x-0.5*self.size,platform.window:height()-14)
+    gc:drawImage(image.copy(paddleImg, math.abs((self.size/image.width(paddleImg)) * image.width(paddleImg)-2),math.abs(image.height(paddleImg))),self.x-0.5*self.size,platform.window:height()-14)
     if self.glow > 0 then 
         gc:setColorRGB(255,100,0)
         fillRoundRect(gc,self.x-1,platform.window:height()-13,self.size-0.5*self.size,3,1)
@@ -552,9 +552,9 @@ end
 
 function resetBonus(bonus)     
     if bonus.bonusType == "PaddleGrow" then
-        paddle.size = paddle.size - 8
+        paddle.size = 40
     elseif bonus.bonusType == "PaddleShrink" then
-        paddle.size = paddle.size + 8
+        paddle.size = 40
     elseif bonus.bonusType == "BallClone" then
             -- Do nothing
     elseif bonus.bonusType == "BallGrow" then
