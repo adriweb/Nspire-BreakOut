@@ -1,7 +1,8 @@
 BlockWidth=20
-BlockHeight=10
+BlockHeight=12
 totalBlocksToDestroy=0
-currentLevel={numberOfBlocks,xPositions={},yPositions={},blocksStates={}}possibleStates={"breakable","solid","unbreakable"}bonusTypes={"PaddleGrow","PaddleShrink","BallClone","BallGrow","BallShrink"}level={{1,1,1},{3,5,2},{10,4,3}}function reset()win=false
+device={api,hasColor,isCalc,theType,lang}device.api=platform.apilevel
+device.hasColor=platform.isColorDisplay()device.lang=locale.name()currentLevel={numberOfBlocks,xPositions={},yPositions={},blocksStates={}}possibleStates={"breakable","solid","unbreakable"}bonusTypes={"PaddleGrow","PaddleShrink","BallClone","BallGrow","BallShrink"}level={{1,1,1},{3,5,2},{10,4,3}}function reset()win=false
 gameover=false
 pause=false
 waitContinue=false
@@ -12,25 +13,25 @@ secureNbr=0
 BonusTable={}BlocksTable={}BallsTable={}FallingBonusTable={}level={{1,1,1},{3,5,2},{10,4,3}}for e=1,20 do
 table.insert(level,{math.random(0,12),math.random(0,10),randomAndCount()})end
 for l,e in pairs(level)do
-table.insert(BlocksTable,Block(20*e[1],12*e[2],20,12,e[3],#BlocksTable+1))end
+table.insert(BlocksTable,Block(20*e[1]*XRatio,12*e[2]*YRatio,BlockWidth*XRatio,BlockHeight*YRatio,e[3],#BlocksTable+1))end
 totalBlocksToDestroy=#BlocksTable-totalBlocksToDestroy
 end
 function randomAndCount()theRand=math.random(1,3)if theRand==3 then totalBlocksToDestroy=totalBlocksToDestroy+1 end
 if theRand==2 then totalBlocksToDestroy=totalBlocksToDestroy-1 end
 return theRand
 end
-function fillRoundRect(t,l,a,d,n,e)if e>n/2 then e=n/2 end
-t:fillPolygon({(l-d/2),(a-n/2+e),(l+d/2),(a-n/2+e),(l+d/2),(a+n/2-e),(l-d/2),(a+n/2-e),(l-d/2),(a-n/2+e)})t:fillPolygon({(l-d/2-e+1),(a-n/2),(l+d/2-e+1),(a-n/2),(l+d/2-e+1),(a+n/2),(l-d/2+e),(a+n/2),(l-d/2+e),(a-n/2)})l=l-d/2
+function fillRoundRect(d,l,a,t,n,e)if e>n/2 then e=n/2 end
+d:fillPolygon({(l-t/2),(a-n/2+e),(l+t/2),(a-n/2+e),(l+t/2),(a+n/2-e),(l-t/2),(a+n/2-e),(l-t/2),(a-n/2+e)})d:fillPolygon({(l-t/2-e+1),(a-n/2),(l+t/2-e+1),(a-n/2),(l+t/2-e+1),(a+n/2),(l-t/2+e),(a+n/2),(l-t/2+e),(a-n/2)})l=l-t/2
 a=a-n/2
-t:fillArc(l+d-(e*2),a+n-(e*2),e*2,e*2,1,-91);t:fillArc(l+d-(e*2),a,e*2,e*2,-2,91);t:fillArc(l,a,e*2,e*2,85,95);t:fillArc(l,a+n-(e*2),e*2,e*2,180,95);end
+d:fillArc(l+t-(e*2),a+n-(e*2),e*2,e*2,1,-91);d:fillArc(l+t-(e*2),a,e*2,e*2,-2,91);d:fillArc(l,a,e*2,e*2,85,95);d:fillArc(l,a+n-(e*2),e*2,e*2,180,95);end
 function clearWindow(e)e:setColorRGB(255,255,255)e:fillRect(0,0,platform.window:width(),platform.window:height())end
 function test(e)return e and 1 or 0
 end
 function screenRefresh()return platform.window:invalidate()end
 function pww()return platform.window:width()end
 function pwh()return platform.window:height()end
-function drawPoint(e,a,l)e:fillRect(x,l,1,1)end
-function drawCenteredString(l,e)l:drawString(e,(pww()-l:getStringWidth(e))/2,pwh()/2,"middle")end
+function drawPoint(l,a,e)l:fillRect(x,e,1,1)end
+function drawCenteredString(e,l)e:drawString(l,(pww()-e:getStringWidth(l))/2,pwh()/2,"middle")end
 function on.create()reset()pause=false
 gameover=false
 on.resize()newPaddleY=0
@@ -39,7 +40,13 @@ newPaddleY=newPaddleY+1
 end
 paddle=Paddle(.5*platform.window:width()-29+newPaddleY,40,0,"")aBall=Ball(math.random(10,platform.window:width()-10-XLimit),platform.window:height()-26,-1,-1,#BallsTable+1)table.insert(BallsTable,aBall)timer.start(.01)end
 function on.timer()platform.window:invalidate()end
-function on.resize()platform.window:setPreferredSize(0,0)isCalc=(pww()<321)XLimit=isCalc and 58 or math.ceil(58*pww()/320)fixedX1=4+.5*(pww()-XLimit+pww()-platform:gc():getStringWidth("Nspire"))fixedX2=6+.5*(pww()-XLimit+pww()-platform.gc():getStringWidth("BreakOut"))end
+function on.resize()if device.api=="1.1"then platform.window:setPreferredSize(0,0)end
+device.isCalc=(platform.window:width()<320)device.theType=platform.isDeviceModeRendering()and"handheld"or"software"XLimit=device.isCalc and 58 or math.ceil(58*pww()/320)fixedX1=4+.5*(pww()-XLimit+pww()-platform:gc():getStringWidth("Nspire"))fixedX2=6+.5*(pww()-XLimit+pww()-platform.gc():getStringWidth("BreakOut"))XRatio=platform.window:width()/318
+YRatio=platform.window:height()/212
+BlocksTable={}for l,e in pairs(level)do
+table.insert(BlocksTable,Block(20*e[1]*XRatio,12*e[2]*YRatio,BlockWidth*XRatio,BlockHeight*YRatio,e[3],#BlocksTable+1))end
+totalBlocksToDestroy=#BlocksTable-totalBlocksToDestroy
+end
 function on.charIn(e)if e=="p"then pause=not pause end
 if e=="r"then
 on.create()end
@@ -47,7 +54,7 @@ if e=="h"then
 needHelp=not needHelp
 end
 end
-function on.mouseMove(e,l)if not pause and e<platform.window:width()-XLimit-paddle.size*.5 and e>paddle.size*.5 then paddle.x=e end
+function on.mouseMove(e,l)if not pause and e+paddle.size*.5<platform.window:width()-XLimit+5*test(not device.isCalc)and e>paddle.size*.5 then paddle.x=e end
 end
 function on.paint(e)e:setColorRGB(0,0,0)if#BallsTable<1 or secureNbr>10 then
 lives=lives-1
@@ -78,7 +85,7 @@ end
 function on.enterKey()print("------------------")print("#BallsTable = "..#BallsTable)for l,e in pairs(BallsTable)do
 print("    ball."..e.id.." : x="..e.x.." y="..e.y)end
 print("#BonusTable = "..#BonusTable)print("#BlocksTable = "..#BlocksTable)print("tmpCount = "..tmpCount)print("totalBlocksToDestroy = "..totalBlocksToDestroy)print("Lives = "..lives)end
-function sideBarStuff(e)e:drawLine(platform.window:width()-XLimit,0,platform.window:width()-XLimit,platform.window:height())e:setFont("serif","r",10)e:drawString("Nspire",fixedX1,pwh()-63,"top")e:drawString("BreakOut",fixedX2,pwh()-49,"top")e:drawString("Adriweb",4+fixedX2,pwh()-22,"top")end
+function sideBarStuff(e)e:drawLine(platform.window:width()-XLimit,0,platform.window:width()-XLimit,platform.window:height())e:setFont("serif","r",10)e:drawString("______",fixedX1-2,pwh()-89,"top")e:drawString("Nspire",fixedX1,pwh()-68,"top")e:drawString("BreakOut",fixedX2,pwh()-54,"top")e:drawString("______",fixedX1-2,pwh()-43,"top")e:drawString("Adriweb",4+fixedX2,pwh()-22,"top")e:drawString("Balls Left :",fixedX1-9,pwh()*.5-30,"top")e:drawString(lives,fixedX1+14,pwh()*.5-30+14,"top")end
 function ballStuff(l)for a,e in pairs(BallsTable)do
 if 2*e.radius-2<0 then e.radius=5 end
 if e.y+e.radius>platform.window:height()-15 then
@@ -104,10 +111,10 @@ if pause then
 l:setAlpha(127)end
 e:paint(l)paddle:paint(l)if pause then
 l:setAlpha(255)if waitContinue then
-l:drawString(lives.." balls left... (Press 'P')",.5*(pww()-l:getStringWidth(lives.." balls left... (Press 'P')")-26),pwh()/2+25,"top")else
+l:drawString(lives.." ball(s) left... (Press 'P')",.5*(pww()-l:getStringWidth(lives.." ball(s) left... (Press 'P')")-32),pwh()/2+25,"top")else
 drawCenteredString(l,"... Pause ...")end
 end
-if not pause and math.random(1,300)==100 then table.insert(FallingBonusTable,Bonus(math.random(5,pww()-70),0,bonusTypes[math.random(1,#bonusTypes)]))end
+if not pause and math.random(1,300)==100 then table.insert(FallingBonusTable,Bonus(math.random(5,pww()-65),0,bonusTypes[math.random(1,#bonusTypes)]))end
 end
 end
 function paddleStuff(e)if paddle.dx>0 then
@@ -132,9 +139,9 @@ l:drawString(e.bonusType.." : "..tostring(e.timeLeft),0,a*12,"top")if not pause 
 if e.timeLeft<2 then table.remove(BonusTable,1);resetBonus(e)end
 end
 end
-Ball=class()function Ball:init(n,a,d,l,e)self.x=n
+Ball=class()function Ball:init(n,a,t,l,e)self.x=n
 self.y=a
-self.speedX=d
+self.speedX=t
 self.speedY=l
 self.radius=5
 self.id=e
@@ -178,10 +185,10 @@ self.x=self.x+self.speedX
 self.y=self.y+self.speedY
 if self.y>pwh()+5 or self.y<-1 or self.x<-5 or self.x>platform.window:width()-XLimit+2 then secureNbr=secureNbr+1;table.remove(BallsTable,self.id)end
 end
-Paddle=class()function Paddle:init(e,l,a,n)self.x=e
+Paddle=class()function Paddle:init(e,l,n,a)self.x=e
 self.size=l
-self.dx=a
-self.bonus=n
+self.dx=n
+self.bonus=a
 self.glow=0
 end
 function Paddle:grabBonus(e)e.timeLeft=1e3
@@ -212,12 +219,12 @@ function Paddle:paint(e)e:setColorRGB(0,0,200)e:drawImage(image.copy(paddleImg,(
 e:setColorRGB(255,100,0)fillRoundRect(e,self.x-1,platform.window:height()-13,self.size-.5*self.size,3,1)self.glow=self.glow-1
 end
 end
-Block=class()function Block:init(a,l,e,n,d,t)self.x=a
+Block=class()function Block:init(n,l,e,a,t,d)self.x=n
 self.y=l
 self.w=e
-self.h=n
-self.state=d
-self.id=t
+self.h=a
+self.state=t
+self.id=d
 end
 function Block:paint(e)e:setColorRGB(0,0,0)e:fillRect(self.x,self.y,self.w,self.h)if self.state==1 then
 e:setColorRGB(0,255,0)elseif self.state==2 then
@@ -232,8 +239,8 @@ if self.state<=2 then
 tmpCount=tmpCount+1
 end
 end
-Bonus=class()function Bonus:init(a,l,e)self.x=a
-self.y=l
+Bonus=class()function Bonus:init(l,a,e)self.x=l
+self.y=a
 self.bonusType=e
 self.timeLeft=9999
 end

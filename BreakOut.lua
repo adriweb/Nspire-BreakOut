@@ -7,9 +7,14 @@
 ------------------------------- 
 
 BlockWidth = 20
-BlockHeight = 10
+BlockHeight = 12
 
-totalBlocksToDestroy = 0
+totalBlocksToDestroy = 0 
+
+device = { api, hasColor, isCalc, theType, lang }
+device.api = platform.apilevel
+device.hasColor = platform.isColorDisplay()
+device.lang = locale.name()
 
 currentLevel = {numberOfBlocks, xPositions = {}, yPositions = {}, blocksStates = {}}
 possibleStates = {"breakable", "solid", "unbreakable"}
@@ -39,7 +44,7 @@ function reset()
        table.insert(level,{math.random(0,12),math.random(0,10),randomAndCount()})
     end
     for i, blockTable in pairs(level) do
-         table.insert(BlocksTable,Block(20*blockTable[1], 12*blockTable[2], 20, 12, blockTable[3], #BlocksTable+1))
+         table.insert(BlocksTable,Block(20*blockTable[1]*XRatio, 12*blockTable[2]*YRatio, BlockWidth*XRatio, BlockHeight*YRatio, blockTable[3], #BlocksTable+1))
     end
     totalBlocksToDestroy = #BlocksTable - totalBlocksToDestroy
 end
@@ -125,13 +130,20 @@ function on.timer()
 end
 
 function on.resize()
-    platform.window:setPreferredSize(0,0)
-    --TODO routine to know if running on calc or software/docPlayer
-    isCalc = (pww() < 321)
-    --print("isCalc = " .. tostring(isCalc) .. " (pww = " .. pww() .. ")")
-    XLimit = isCalc and 58 or math.ceil(58*pww()/320)
+    if device.api == "1.1" then platform.window:setPreferredSize(0,0) end
+    device.isCalc = (platform.window:width() < 320)
+    device.theType = platform.isDeviceModeRendering() and "handheld" or "software"
+    XLimit = device.isCalc and 58 or math.ceil(58*pww()/320)
     fixedX1 = 4+0.5*(pww()-XLimit+pww()-platform:gc():getStringWidth("Nspire"))
     fixedX2 = 6+0.5*(pww()-XLimit+pww()-platform.gc():getStringWidth("BreakOut"))
+    XRatio = platform.window:width()/318
+    YRatio = platform.window:height()/212
+    
+    BlocksTable = {}
+    for i, blockTable in pairs(level) do
+         table.insert(BlocksTable,Block(20*blockTable[1]*XRatio, 12*blockTable[2]*YRatio, BlockWidth*XRatio, BlockHeight*YRatio, blockTable[3], #BlocksTable+1))
+    end
+    totalBlocksToDestroy = #BlocksTable - totalBlocksToDestroy
 end
 
 function on.charIn(ch)
@@ -145,7 +157,7 @@ function on.charIn(ch)
 end
 
 function on.mouseMove(x,y)
-   if not pause and x<platform.window:width()-XLimit-paddle.size*0.5 and x>paddle.size*0.5 then paddle.x = x end
+   if not pause and x+paddle.size*0.5<platform.window:width()-XLimit+5*test(not device.isCalc) and x>paddle.size*0.5 then paddle.x = x end
 end
 
 function on.paint(gc)
@@ -211,9 +223,14 @@ end
 function sideBarStuff(gc)
     gc:drawLine(platform.window:width()-XLimit,0,platform.window:width()-XLimit,platform.window:height())
     gc:setFont("serif","r",10)
-    gc:drawString("Nspire",fixedX1,pwh()-63,"top") 
-    gc:drawString("BreakOut",fixedX2,pwh()-49,"top")
+    gc:drawString("______",fixedX1-2,pwh()-89,"top")
+    gc:drawString("Nspire",fixedX1,pwh()-68,"top") 
+    gc:drawString("BreakOut",fixedX2,pwh()-54,"top")
+    gc:drawString("______",fixedX1-2,pwh()-43,"top")
     gc:drawString("Adriweb",4+fixedX2,pwh()-22,"top")
+    
+    gc:drawString("Balls Left :",fixedX1-9,pwh()*.5-30,"top")
+    gc:drawString(lives,fixedX1+14,pwh()*.5-30+14,"top")
 end
           
 function ballStuff(gc)
@@ -261,13 +278,13 @@ function ballStuff(gc)
         if pause then
            gc:setAlpha(255)
            if waitContinue then 
-              gc:drawString(lives .. " balls left... (Press 'P')",0.5*(pww()-gc:getStringWidth(lives .. " balls left... (Press 'P')")-26),pwh()/2+25,"top") 
+              gc:drawString(lives .. " ball(s) left... (Press 'P')",0.5*(pww()-gc:getStringWidth(lives .. " ball(s) left... (Press 'P')")-32),pwh()/2+25,"top") 
            else
                drawCenteredString(gc,"... Pause ...")
            end
         end
         
-        if not pause and math.random(1,300) == 100 then table.insert(FallingBonusTable,Bonus(math.random(5,pww()-70),0,bonusTypes[math.random(1,#bonusTypes)])) end
+        if not pause and math.random(1,300) == 100 then table.insert(FallingBonusTable,Bonus(math.random(5,pww()-65),0,bonusTypes[math.random(1,#bonusTypes)])) end
     end
 end
 
