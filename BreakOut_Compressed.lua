@@ -104,7 +104,7 @@ if pause then
 l:setAlpha(127)end
 e:paint(l)paddle:paint(l)if pause then
 l:setAlpha(255)if waitContinue then
-l:drawString(lives.." balls left... (Press 'P')",.5*(pww()-l:getStringWidth(lives.." balls left... (Press 'P')")-26),pwh()/2+25,"top")else
+l:drawString(lives.." balls left... (Press 'P')",.5*(pww()-l:getStringWidth(lives.." balls left... (Press 'P')")-20),pwh()/2+20,"top")else
 drawCenteredString(l,"... Pause ...")end
 end
 if not pause and math.random(1,300)==100 then table.insert(FallingBonusTable,Bonus(math.random(5,pww()-70),0,bonusTypes[math.random(1,#bonusTypes)]))end

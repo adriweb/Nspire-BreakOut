@@ -261,7 +261,7 @@ function ballStuff(gc)
         if pause then
            gc:setAlpha(255)
            if waitContinue then 
-              gc:drawString(lives .. " balls left... (Press 'P')",0.5*(pww()-gc:getStringWidth(lives .. " balls left... (Press 'P')")-26),pwh()/2+25,"top") 
+              gc:drawString(lives .. " balls left... (Press 'P')",0.5*(pww()-gc:getStringWidth(lives .. " balls left... (Press 'P')")-20),pwh()/2+20,"top") 
            else
                drawCenteredString(gc,"... Pause ...")
            end
