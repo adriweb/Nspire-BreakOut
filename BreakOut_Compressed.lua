@@ -10,7 +10,8 @@ tmpCount=0
 lives=3
 score=-1
 secureNbr=0
-BonusTable={}BlocksTable={}BallsTable={}FallingBonusTable={}level={{1,1,1},{3,5,2},{10,4,3}}for e=1,20 do
+BonusTable={Bonus(-1,-1,"PaddleGrow"),Bonus(-1,-1,"PaddleShrink"),Bonus(-1,-1,"BallClone"),Bonus(-1,-1,"BallGrow"),Bonus(-1,-1,"BallShrink")}BlocksTable={}BallsTable={}FallingBonusTable={}totalBlocksToDestroy=99
+level={{1,1,1},{3,5,2},{10,4,3}}for e=1,20 do
 table.insert(level,{math.random(0,12),math.random(0,10),randomAndCount()})end
 for l,e in pairs(level)do
 table.insert(BlocksTable,Block(20*e[1]*XRatio,12*e[2]*YRatio,BlockWidth*XRatio,BlockHeight*YRatio,e[3],#BlocksTable+1))end
@@ -20,18 +21,18 @@ function randomAndCount()theRand=math.random(1,3)if theRand==3 then totalBlocksT
 if theRand==2 then totalBlocksToDestroy=totalBlocksToDestroy-1 end
 return theRand
 end
-function fillRoundRect(d,l,a,t,n,e)if e>n/2 then e=n/2 end
-d:fillPolygon({(l-t/2),(a-n/2+e),(l+t/2),(a-n/2+e),(l+t/2),(a+n/2-e),(l-t/2),(a+n/2-e),(l-t/2),(a-n/2+e)})d:fillPolygon({(l-t/2-e+1),(a-n/2),(l+t/2-e+1),(a-n/2),(l+t/2-e+1),(a+n/2),(l-t/2+e),(a+n/2),(l-t/2+e),(a-n/2)})l=l-t/2
-a=a-n/2
-d:fillArc(l+t-(e*2),a+n-(e*2),e*2,e*2,1,-91);d:fillArc(l+t-(e*2),a,e*2,e*2,-2,91);d:fillArc(l,a,e*2,e*2,85,95);d:fillArc(l,a+n-(e*2),e*2,e*2,180,95);end
+function fillRoundRect(d,a,l,t,n,e)if e>n/2 then e=n/2 end
+d:fillPolygon({(a-t/2),(l-n/2+e),(a+t/2),(l-n/2+e),(a+t/2),(l+n/2-e),(a-t/2),(l+n/2-e),(a-t/2),(l-n/2+e)})d:fillPolygon({(a-t/2-e+1),(l-n/2),(a+t/2-e+1),(l-n/2),(a+t/2-e+1),(l+n/2),(a-t/2+e),(l+n/2),(a-t/2+e),(l-n/2)})a=a-t/2
+l=l-n/2
+d:fillArc(a+t-(e*2),l+n-(e*2),e*2,e*2,1,-91);d:fillArc(a+t-(e*2),l,e*2,e*2,-2,91);d:fillArc(a,l,e*2,e*2,85,95);d:fillArc(a,l+n-(e*2),e*2,e*2,180,95);end
 function clearWindow(e)e:setColorRGB(255,255,255)e:fillRect(0,0,platform.window:width(),platform.window:height())end
 function test(e)return e and 1 or 0
 end
 function screenRefresh()return platform.window:invalidate()end
 function pww()return platform.window:width()end
 function pwh()return platform.window:height()end
-function drawPoint(l,a,e)l:fillRect(x,e,1,1)end
-function drawCenteredString(e,l)e:drawString(l,(pww()-e:getStringWidth(l))/2,pwh()/2,"middle")end
+function drawPoint(e,a,l)e:fillRect(x,l,1,1)end
+function drawCenteredString(l,e)l:drawString(e,(pww()-l:getStringWidth(e))/2,pwh()/2,"middle")end
 function on.create()reset()pause=false
 gameover=false
 on.resize()newPaddleY=0
@@ -85,7 +86,7 @@ end
 function on.enterKey()print("------------------")print("#BallsTable = "..#BallsTable)for l,e in pairs(BallsTable)do
 print("    ball."..e.id.." : x="..e.x.." y="..e.y)end
 print("#BonusTable = "..#BonusTable)print("#BlocksTable = "..#BlocksTable)print("tmpCount = "..tmpCount)print("totalBlocksToDestroy = "..totalBlocksToDestroy)print("Lives = "..lives)end
-function sideBarStuff(e)e:drawLine(platform.window:width()-XLimit,0,platform.window:width()-XLimit,platform.window:height())e:setFont("serif","r",10)e:drawString("______",fixedX1-2,pwh()-89,"top")e:drawString("Nspire",fixedX1,pwh()-68,"top")e:drawString("BreakOut",fixedX2,pwh()-54,"top")e:drawString("______",fixedX1-2,pwh()-43,"top")e:drawString("Adriweb",4+fixedX2,pwh()-22,"top")e:drawString("Balls Left :",fixedX1-9,pwh()*.5-30,"top")e:drawString(lives,fixedX1+14,pwh()*.5-30+14,"top")end
+function sideBarStuff(e)e:drawLine(platform.window:width()-XLimit,0,platform.window:width()-XLimit,platform.window:height())e:setFont("serif","r",10)e:drawString("______",fixedX1-2,pwh()-89,"top")e:drawString("Nspire",fixedX1,pwh()-68,"top")e:drawString("BreakOut",fixedX2,pwh()-54,"top")e:drawString("______",fixedX1-2,pwh()-43,"top")e:drawString("Adriweb",4+fixedX2,pwh()-22,"top")e:drawString("Balls Left :",fixedX1-9,pwh()*.5-22,"top")e:drawString(lives,fixedX1+14,pwh()*.5-22+14,"top")end
 function ballStuff(l)for a,e in pairs(BallsTable)do
 if 2*e.radius-2<0 then e.radius=5 end
 if e.y+e.radius>platform.window:height()-15 then
@@ -114,7 +115,7 @@ l:setAlpha(255)if waitContinue then
 l:drawString(lives.." ball(s) left... (Press 'P')",.5*(pww()-l:getStringWidth(lives.." ball(s) left... (Press 'P')")-32),pwh()/2+25,"top")else
 drawCenteredString(l,"... Pause ...")end
 end
-if not pause and math.random(1,300)==100 then table.insert(FallingBonusTable,Bonus(math.random(5,pww()-65),0,bonusTypes[math.random(1,#bonusTypes)]))end
+if not pause and math.random(1,450)==100 then table.insert(FallingBonusTable,Bonus(math.random(5,pww()-65),0,bonusTypes[math.random(1,#bonusTypes)]))end
 end
 end
 function paddleStuff(e)if paddle.dx>0 then
@@ -135,16 +136,17 @@ end
 for a,e in pairs(BonusTable)do
 l:setColorRGB(0,0,255)if e.timeLeft<666 then l:setColorRGB(0,0,0)end
 if e.timeLeft<333 then l:setColorRGB(255,0,0)end
-l:drawString(e.bonusType.." : "..tostring(e.timeLeft),0,a*12,"top")if not pause then e.timeLeft=e.timeLeft-1 end
-if e.timeLeft<2 then table.remove(BonusTable,1);resetBonus(e)end
+if e.timeLeft>2 then l:drawString(e.bonusType.." : "..tostring(e.timeLeft),0,a*12,"top")end
+if not pause and not(e.timeLeft<0)then e.timeLeft=e.timeLeft-1 end
+if e.timeLeft<2 then resetBonus(e)end
 end
 end
-Ball=class()function Ball:init(n,a,t,l,e)self.x=n
+Ball=class()function Ball:init(t,a,n,e,l)self.x=t
 self.y=a
-self.speedX=t
-self.speedY=l
+self.speedX=n
+self.speedY=e
 self.radius=5
-self.id=e
+self.id=l
 end
 function Ball:paint(e)e:setColorRGB(0,0,0)e:drawArc(self.x-self.radius,self.y-self.radius,2*self.radius,2*self.radius,0,360)e:setColorRGB(127,127,0)e:fillArc(self.x-self.radius+1,self.y-self.radius+1,2*self.radius-2,2*self.radius-2,0,360)end
 function Ball:intersectsBlock(e)return(self.x>e.x-self.radius-2 and self.x<(e.x+e.w+self.radius+2))and(self.y>e.y+self.radius+2 and self.y<(e.y+e.h+self.radius+2))end
@@ -185,14 +187,19 @@ self.x=self.x+self.speedX
 self.y=self.y+self.speedY
 if self.y>pwh()+5 or self.y<-1 or self.x<-5 or self.x>platform.window:width()-XLimit+2 then secureNbr=secureNbr+1;table.remove(BallsTable,self.id)end
 end
-Paddle=class()function Paddle:init(e,l,n,a)self.x=e
-self.size=l
-self.dx=n
-self.bonus=a
+Paddle=class()function Paddle:init(n,a,e,l)self.x=n
+self.size=a
+self.dx=e
+self.bonus=l
 self.glow=0
 end
 function Paddle:grabBonus(e)e.timeLeft=1e3
-table.insert(BonusTable,e)if e.bonusType=="PaddleGrow"then
+for a,l in pairs(BonusTable)do
+if l.bonusType==e.bonusType then
+l.timeLeft=l.timeLeft+1e3
+end
+end
+if e.bonusType=="PaddleGrow"then
 self.size=self.size+8
 elseif e.bonusType=="PaddleShrink"then
 self.size=self.size-8
@@ -219,12 +226,12 @@ function Paddle:paint(e)e:setColorRGB(0,0,200)e:drawImage(image.copy(paddleImg,(
 e:setColorRGB(255,100,0)fillRoundRect(e,self.x-1,platform.window:height()-13,self.size-.5*self.size,3,1)self.glow=self.glow-1
 end
 end
-Block=class()function Block:init(n,l,e,a,t,d)self.x=n
+Block=class()function Block:init(e,l,a,n,d,t)self.x=e
 self.y=l
-self.w=e
-self.h=a
-self.state=t
-self.id=d
+self.w=a
+self.h=n
+self.state=d
+self.id=t
 end
 function Block:paint(e)e:setColorRGB(0,0,0)e:fillRect(self.x,self.y,self.w,self.h)if self.state==1 then
 e:setColorRGB(0,255,0)elseif self.state==2 then
@@ -242,7 +249,7 @@ end
 Bonus=class()function Bonus:init(l,a,e)self.x=l
 self.y=a
 self.bonusType=e
-self.timeLeft=9999
+self.timeLeft=-1
 end
 function Bonus:paint(e)e:setColorRGB(0,0,0)e:fillRect(self.x,self.y,15,15)e:setColorRGB(200,0,200)e:fillRect(self.x+1,self.y+1,13,13)e:setColorRGB(255,0,0)e:fillRect(self.x+2,self.y+2,11,11)end
 function Bonus:update()self.y=self.y+1

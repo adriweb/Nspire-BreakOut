@@ -33,10 +33,11 @@ function reset()
     lives = 3
     score = -1
     secureNbr = 0
-    BonusTable = {}    
+    BonusTable = {Bonus(-1,-1,"PaddleGrow"), Bonus(-1,-1,"PaddleShrink"), Bonus(-1,-1,"BallClone"), Bonus(-1,-1,"BallGrow"), Bonus(-1,-1,"BallShrink")}
     BlocksTable = {}
     BallsTable = {}
     FallingBonusTable = {}
+    totalBlocksToDestroy = 99
         
     level = { {1,1,1}, {3,5,2}, {10,4,3} } -- level 1
     -- Random level : 
@@ -229,8 +230,8 @@ function sideBarStuff(gc)
     gc:drawString("______",fixedX1-2,pwh()-43,"top")
     gc:drawString("Adriweb",4+fixedX2,pwh()-22,"top")
     
-    gc:drawString("Balls Left :",fixedX1-9,pwh()*.5-30,"top")
-    gc:drawString(lives,fixedX1+14,pwh()*.5-30+14,"top")
+    gc:drawString("Balls Left :",fixedX1-9,pwh()*.5-22,"top")
+    gc:drawString(lives,fixedX1+14,pwh()*.5-22+14,"top")
 end
           
 function ballStuff(gc)
@@ -284,7 +285,7 @@ function ballStuff(gc)
            end
         end
         
-        if not pause and math.random(1,300) == 100 then table.insert(FallingBonusTable,Bonus(math.random(5,pww()-65),0,bonusTypes[math.random(1,#bonusTypes)])) end
+        if not pause and math.random(1,450) == 100 then table.insert(FallingBonusTable,Bonus(math.random(5,pww()-65),0,bonusTypes[math.random(1,#bonusTypes)])) end
     end
 end
 
@@ -311,9 +312,9 @@ function bonusStuff(gc)
         gc:setColorRGB(0,0,255)
         if bonus.timeLeft < 666 then gc:setColorRGB(0,0,0) end
         if bonus.timeLeft < 333 then gc:setColorRGB(255,0,0) end
-        gc:drawString(bonus.bonusType .. " : " .. tostring(bonus.timeLeft),0,i*12,"top")
-        if not pause then bonus.timeLeft = bonus.timeLeft - 1 end
-        if bonus.timeLeft < 2 then table.remove(BonusTable,1) ; resetBonus(bonus) end
+        if bonus.timeLeft > 2 then gc:drawString(bonus.bonusType .. " : " .. tostring(bonus.timeLeft),0,i*12,"top") end
+        if not pause and not (bonus.timeLeft < 0) then bonus.timeLeft = bonus.timeLeft - 1 end
+        if bonus.timeLeft < 2 then resetBonus(bonus) end
    end 
 end
                             
@@ -426,8 +427,14 @@ end
 
 function Paddle:grabBonus(bonus)
     bonus.timeLeft = 1000
-    table.insert(BonusTable,bonus)
-    -- TODO                
+    
+    for i,v in pairs(BonusTable) do
+        if v.bonusType == bonus.bonusType then
+           v.timeLeft = v.timeLeft + 1000
+        end
+    end
+
+    
     if bonus.bonusType == "PaddleGrow" then
         self.size = self.size + 8
     elseif bonus.bonusType == "PaddleShrink" then
@@ -519,7 +526,7 @@ function Bonus:init(x, y, bonusType)
     self.x = x
     self.y = y
     self.bonusType = bonusType
-    self.timeLeft = 9999
+    self.timeLeft = -1
 end
 
 function Bonus:paint(gc)
