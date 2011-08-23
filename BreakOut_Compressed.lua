@@ -21,10 +21,10 @@ function randomAndCount()theRand=math.random(1,3)if theRand==3 then totalBlocksT
 if theRand==2 then totalBlocksToDestroy=totalBlocksToDestroy-1 end
 return theRand
 end
-function fillRoundRect(d,a,l,t,n,e)if e>n/2 then e=n/2 end
-d:fillPolygon({(a-t/2),(l-n/2+e),(a+t/2),(l-n/2+e),(a+t/2),(l+n/2-e),(a-t/2),(l+n/2-e),(a-t/2),(l-n/2+e)})d:fillPolygon({(a-t/2-e+1),(l-n/2),(a+t/2-e+1),(l-n/2),(a+t/2-e+1),(l+n/2),(a-t/2+e),(l+n/2),(a-t/2+e),(l-n/2)})a=a-t/2
-l=l-n/2
-d:fillArc(a+t-(e*2),l+n-(e*2),e*2,e*2,1,-91);d:fillArc(a+t-(e*2),l,e*2,e*2,-2,91);d:fillArc(a,l,e*2,e*2,85,95);d:fillArc(a,l+n-(e*2),e*2,e*2,180,95);end
+function fillRoundRect(d,l,a,t,n,e)if e>n/2 then e=n/2 end
+d:fillPolygon({(l-t/2),(a-n/2+e),(l+t/2),(a-n/2+e),(l+t/2),(a+n/2-e),(l-t/2),(a+n/2-e),(l-t/2),(a-n/2+e)})d:fillPolygon({(l-t/2-e+1),(a-n/2),(l+t/2-e+1),(a-n/2),(l+t/2-e+1),(a+n/2),(l-t/2+e),(a+n/2),(l-t/2+e),(a-n/2)})l=l-t/2
+a=a-n/2
+d:fillArc(l+t-(e*2),a+n-(e*2),e*2,e*2,1,-91);d:fillArc(l+t-(e*2),a,e*2,e*2,-2,91);d:fillArc(l,a,e*2,e*2,85,95);d:fillArc(l,a+n-(e*2),e*2,e*2,180,95);end
 function clearWindow(e)e:setColorRGB(255,255,255)e:fillRect(0,0,platform.window:width(),platform.window:height())end
 function test(e)return e and 1 or 0
 end
@@ -138,7 +138,7 @@ l:setColorRGB(0,0,255)if e.timeLeft<666 then l:setColorRGB(0,0,0)end
 if e.timeLeft<333 then l:setColorRGB(255,0,0)end
 if e.timeLeft>2 then l:drawString(e.bonusType.." : "..tostring(e.timeLeft),0,a*12,"top")end
 if not pause and not(e.timeLeft<0)then e.timeLeft=e.timeLeft-1 end
-if e.timeLeft<2 then resetBonus(e)end
+if e.timeLeft<2 and e.timeLeft~=-1 then resetBonus(e)end
 end
 end
 Ball=class()function Ball:init(t,a,n,e,l)self.x=t
@@ -254,7 +254,7 @@ end
 function Bonus:paint(e)e:setColorRGB(0,0,0)e:fillRect(self.x,self.y,15,15)e:setColorRGB(200,0,200)e:fillRect(self.x+1,self.y+1,13,13)e:setColorRGB(255,0,0)e:fillRect(self.x+2,self.y+2,11,11)end
 function Bonus:update()self.y=self.y+1
 end
-function Bonus:fallsOnPaddle()return(self.y>platform.window:height()-16)and(self.x>=paddle.x-paddle.size*.5-4 and(self.x<=paddle.x+paddle.size*.5+4))end
+function Bonus:fallsOnPaddle()return(self.y+4>platform.window:height()-16)and(self.x>=paddle.x-paddle.size*.5-4 and(self.x<=paddle.x+paddle.size*.5+4))end
 function Bonus:destroy()self.y=self.y+pwh()table.remove(FallingBonusTable,1)end
 function resetBonus(e)if e.bonusType=="PaddleGrow"then
 paddle.size=paddle.size-8

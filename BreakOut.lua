@@ -314,7 +314,7 @@ function bonusStuff(gc)
         if bonus.timeLeft < 333 then gc:setColorRGB(255,0,0) end
         if bonus.timeLeft > 2 then gc:drawString(bonus.bonusType .. " : " .. tostring(bonus.timeLeft),0,i*12,"top") end
         if not pause and not (bonus.timeLeft < 0) then bonus.timeLeft = bonus.timeLeft - 1 end
-        if bonus.timeLeft < 2 then resetBonus(bonus) end
+        if bonus.timeLeft < 2 and bonus.timeLeft ~= -1 then resetBonus(bonus) end
    end 
 end
                             
@@ -428,13 +428,12 @@ end
 function Paddle:grabBonus(bonus)
     bonus.timeLeft = 1000
     
-    for i,v in pairs(BonusTable) do
+    for _,v in pairs(BonusTable) do
         if v.bonusType == bonus.bonusType then
            v.timeLeft = v.timeLeft + 1000
         end
     end
-
-    
+        
     if bonus.bonusType == "PaddleGrow" then
         self.size = self.size + 8
     elseif bonus.bonusType == "PaddleShrink" then
@@ -543,7 +542,7 @@ function Bonus:update()
 end
 
 function Bonus:fallsOnPaddle()
-    return (self.y > platform.window:height()-16) and (self.x >= paddle.x-paddle.size*0.5-4 and (self.x <= paddle.x+paddle.size*0.5+4))
+    return (self.y+4 > platform.window:height()-16) and (self.x >= paddle.x-paddle.size*0.5-4 and (self.x <= paddle.x+paddle.size*0.5+4))
 end
 
 function Bonus:destroy()
