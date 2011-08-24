@@ -1,7 +1,7 @@
 -- Adriweb (with help from Levak), 2011
 -- BreakOut "Casse Brique" Game
 
-gameVersion = "v1.8.5b"                                 
+gameVersion = "v1.8.8b"                                 
                                  
 -------------------------------   
 ------------Globals------------
@@ -109,6 +109,9 @@ end
 
 
 function on.create()
+    if not highscore then
+        highscore = 0 -- first time we initialize highscore
+    end
     reset()
     pause = false
     gameover = false
@@ -122,6 +125,16 @@ function on.create()
     aBall = Ball(math.random(10,platform.window:width()-10-XLimit),platform.window:height()-26,-1-speedDiff,-1-speedDiff,#BallsTable+1)
     table.insert(BallsTable,aBall)
     timer.start(0.01)
+end
+
+function on.save()
+  return highscore
+end
+ 
+function on.restore(data)
+  if type(data) == "number" then
+    highscore = data
+  end
 end
 
 function on.timer()
@@ -215,7 +228,14 @@ function on.paint(gc)
     bonusStuff(gc)
      
   elseif gameover then
+      if score > highscore then
+          highscore = math.floor(score)
+          document.markChanged()
+          gc:setFont("serif","b",12)
+          drawXCenteredString(gc,"New Highscore ! Congratulations !",pwh()*.5+20)     
+      end
       drawCenteredString(gc,"Game Over ! Score = " .. tostring(math.floor(score)))
+      drawXCenteredString(gc,"Press 'R' to go to the menu",pwh()*.80)
   elseif win then
       drawCenteredString(gc,"You won ! Score = " .. tostring(math.floor(score)))
   elseif needHelp then
@@ -234,9 +254,6 @@ end
 
 function on.enterKey()
     if needHelp then needHelp = not needHelp end
-    print("------------------")
-    print("tmpCount = " .. tmpCount)
-    print("totalBlocksToDestroy = " .. totalBlocksToDestroy)
 end
 
 function on.help()
@@ -251,14 +268,20 @@ end
 function sideBarStuff(gc)
     gc:drawLine(platform.window:width()-XLimit,0,platform.window:width()-XLimit,platform.window:height())
     gc:setFont("serif","r",10)
-    gc:drawString("______",fixedX1-2,pwh()-89,"top")
-    gc:drawString("Nspire",fixedX1,pwh()-68,"top") 
-    gc:drawString("BreakOut",fixedX2,pwh()-54,"top")
-    gc:drawString("______",fixedX1-2,pwh()-43,"top")
-    gc:drawString("Adriweb",4+fixedX2,pwh()-22,"top")
     
-    gc:drawString("Balls Left :",fixedX1-9,pwh()*.5-22,"top")
-    gc:drawString(lives,fixedX1+14,pwh()*.5-22+14,"top")
+    -- TODO : bonus sidebar stuff
+    
+    gc:drawString("______",fixedX1-2,pwh()*.5-70,"top")
+    gc:drawString("Highscore :",fixedX1-9,pwh()*.5-52,"top")
+    gc:drawString(highscore,fixedX1+10,pwh()*.5-38,"top")
+    gc:drawString("______",fixedX1-2,pwh()*.5-21,"top")
+    gc:drawString("Balls Left :",fixedX1-9,pwh()*.5,"top")
+    gc:drawString(lives,fixedX1+14,pwh()*.5+14,"top")
+    gc:drawString("______",fixedX1-2,pwh()-85,"top")
+    gc:drawString("Nspire",fixedX1,pwh()-65,"top") 
+    gc:drawString("BreakOut",fixedX2,pwh()-51,"top")
+    gc:drawString("______",fixedX1-2,pwh()-41,"top")
+    gc:drawString("Adriweb",4+fixedX2,pwh()-22,"top")
 end
           
 function ballStuff(gc)
@@ -580,11 +603,11 @@ end
 
 function Bonus:paint(gc)
     gc:setColorRGB(0,0,0)
-    gc:fillRect(self.x,self.y,15,15) 
+    gc:fillRect(self.x*XRatio,self.y*YRatio,15*XRatio,15*YRatio) 
     gc:setColorRGB(200,0,200)
-    gc:fillRect(self.x+1,self.y+1,13,13)
+    gc:fillRect((self.x+1)*XRatio,(self.y+1)*YRatio,13*XRatio,13*YRatio)
     gc:setColorRGB(255,0,0)
-    gc:fillRect(self.x+2,self.y+2,11,11)
+    gc:fillRect((self.x+2)*XRatio,(self.y+2)*YRatio,11*XRatio,11*YRatio)
 end
 
 function Bonus:update()
