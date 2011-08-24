@@ -1,7 +1,6 @@
 -- Adriweb (with help from Levak), 2011
 -- BreakOut "Casse Brique" Game
 
-
 gameVersion = "v1.8b"                                 
                                  
 -------------------------------   
@@ -181,6 +180,11 @@ function on.mouseMove(x,y)
 end
 
 function on.paint(gc)
+
+  drawCenteredString(platform.gc(),"Hey, what ya doin' here ? Go back to the game !")
+  gc:setColorRGB(255,255,255)
+  gc:fillRect(1,1,pww(),pwh())
+
   gc:setColorRGB(0,0,0)
   if #BallsTable < 1 or secureNbr > 10 then
       lives = lives - 1
@@ -353,6 +357,7 @@ function helpScreen(gc)
    gc:drawImage(gameLogo,.5*(pww()-image.width(gameLogo)), pwh()*.19)
    gc:setColorRGB(0,0,0) -- bugfix to prevent image to update the current color
    
+   gc:setFont("serif","r",11)
    drawXCenteredString(gc,"Paddle Control : Arrows or 4/6",pwh()*0.52)
    drawXCenteredString(gc,"'T' to enable touch-controls",pwh()*0.60)
    
