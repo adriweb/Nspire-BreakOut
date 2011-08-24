@@ -269,19 +269,29 @@ end
 function sideBarStuff(gc)
     gc:drawLine(platform.window:width()-XLimit,0,platform.window:width()-XLimit,platform.window:height())
     gc:setFont("serif","r",10)
+    gc:setColorRGB(0,0,0)
     
-    -- TODO : bonus sidebar stuff
+    local theTime
     
-    gc:drawString("______",fixedX1-2,pwh()*.5-70,"top")
-    gc:drawString("Highscore :",fixedX1-9,pwh()*.5-52,"top")
-    gc:drawString(highscore,fixedX1+10,pwh()*.5-38,"top")
-    gc:drawString("______",fixedX1-2,pwh()*.5-21,"top")
-    gc:drawString("Balls Left :",fixedX1-9,pwh()*.5,"top")
-    gc:drawString(lives,fixedX1+14,pwh()*.5+14,"top")
-    gc:drawString("______",fixedX1-2,pwh()-85,"top")
-    gc:drawString("Nspire",fixedX1,pwh()-65,"top") 
-    gc:drawString("BreakOut",fixedX2,pwh()-51,"top")
-    gc:drawString("______",fixedX1-2,pwh()-41,"top")
+    for i,v in pairs(BonusTable) do
+       theTime = (v.timeLeft < 0 and "None") or math.floor(.1*v.timeLeft)
+       if v.timeLeft > 0 then
+           if bonus.timeLeft < 66 then gc:setColorRGB(0,0,0) end
+           if bonus.timeLeft < 33 then gc:setColorRGB(255,0,0) end
+       end
+       gc:drawString(i .. " : " .. theTime,fixedX1-6, 12*i-12,"top")
+    end
+    
+    gc:drawString("______",fixedX1-2,pwh()*.5-51,"top")
+    gc:drawString("Highscore :",fixedX1-9,pwh()*.5-31,"top")
+    gc:drawString(highscore,fixedX1+13,pwh()*.5-18,"top")
+    gc:drawString("______",fixedX1-2,pwh()*.5-12,"top")
+    gc:drawString("Balls Left :",fixedX1-9,pwh()*.5+8,"top")
+    gc:drawString(lives,fixedX1+14,pwh()*.5+22,"top")
+    gc:drawString("______",fixedX1-2,pwh()-79,"top")
+    gc:drawString("Nspire",fixedX1,pwh()-61,"top") 
+    gc:drawString("BreakOut",fixedX2,pwh()-47,"top")
+    gc:drawString("______",fixedX1-2,pwh()-39,"top")
     gc:drawString("Adriweb",4+fixedX2,pwh()-22,"top")
 end
           
@@ -364,9 +374,9 @@ function bonusStuff(gc)
    end
    for i, bonus in pairs(BonusTable) do
         gc:setColorRGB(0,0,255)
-        if bonus.timeLeft < 666 then gc:setColorRGB(0,0,0) end
-        if bonus.timeLeft < 333 then gc:setColorRGB(255,0,0) end
-        if bonus.timeLeft > 2 then gc:drawString(bonus.bonusType .. " : " .. tostring(bonus.timeLeft),0,i*12,"top") end
+        --if bonus.timeLeft < 666 then gc:setColorRGB(0,0,0) end
+        --if bonus.timeLeft < 333 then gc:setColorRGB(255,0,0) end
+        --if bonus.timeLeft > 2 then gc:drawString(bonus.bonusType .. " : " .. tostring(bonus.timeLeft),0,i*12,"top") end
         if not pause and not (bonus.timeLeft < 1) then bonus.timeLeft = bonus.timeLeft - 1 end
         if bonus.timeLeft < 2 and bonus.timeLeft ~= -10 then resetBonus(bonus) end
    end 
