@@ -130,7 +130,6 @@ function on.create()
          newPaddleY = newPaddleY+1
     end
     paddle = Paddle(0.5*platform.window:width()-29+newPaddleY,40*XRatio,0,"")
-    local speedDiff = test(device.isCalc and device.theType == "handheld")
     aBall = Ball(math.random(10,platform.window:width()-10-XLimit),platform.window:height()-26,-1-speedDiff,-1-speedDiff,#BallsTable+1)
     table.insert(BallsTable,aBall)
     timer.start(0.01)
@@ -157,7 +156,9 @@ function on.resize()
     for i, blockTable in pairs(level) do
          table.insert(BlocksTable,Block(20*blockTable[1]*XRatio, 12*blockTable[2]*YRatio, BlockWidth*XRatio, BlockHeight*YRatio, blockTable[3], #BlocksTable+1))
     end
-    totalBlocksToDestroy = #BlocksTable - totalBlocksToDestroy
+    totalBlocksToDestroy = #BlocksTable - totalBlocksToDestroy 
+    
+    speedDiff = test(device.isCalc and device.theType == "handheld")
 end
 
 function on.charIn(ch)
@@ -486,7 +487,7 @@ function Paddle:grabBonus(bonus)
     elseif bonus.bonusType == "PaddleShrink" then
         self.size = 20*XRatio
     elseif bonus.bonusType == "BallClone" then
-        table.insert(BallsTable,Ball(math.random(1,platform.window:width()-XLimit),platform.window:height()-26,-1,-1,#BallsTable+1))
+        table.insert(BallsTable,Ball(math.random(1,platform.window:width()-XLimit),platform.window:height()-26,-1-speedDiff,-1-speedDiff,#BallsTable+1))
     elseif bonus.bonusType == "BallGrow" then
         for _, ball in pairs(BallsTable) do 
              if ball.y-ball.radius < 5*XRatio then
