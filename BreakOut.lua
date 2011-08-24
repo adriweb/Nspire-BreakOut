@@ -1,7 +1,7 @@
 -- Adriweb (with help from Levak), 2011
 -- BreakOut "Casse Brique" Game
 
-gameVersion = "v1.8b"                                 
+gameVersion = "v1.8.5b"                                 
                                  
 -------------------------------   
 ------------Globals------------
@@ -172,17 +172,18 @@ end
 function on.escapeKey()
    needHelp = not needHelp
 end
-
-function on.deactivate()
-   drawCenteredString(platform.gc(),"Hey, what ya doin' here ? Go back to the game !")
-end
-
-function on.activate()
-   platform.gc():setColorRGB(255,255,255)
-   platform.gc():fillRect(1,1,pww(),pwh())
-end  
   
 function on.paint(gc)
+   --------
+   if device.api == "1.0" then
+       platform.gc():setColorRGB(0,0,0)
+       platform.gc():setFont("serif","r",12)
+       drawCenteredString(platform.gc(),"The GAME.")
+       gc:setColorRGB(255,255,255)
+       gc:fillRect(1,1,pww(),pwh())
+   end
+   -------
+   
   gc:setColorRGB(0,0,0)
   if #BallsTable < 1 or secureNbr > 10 then
       lives = lives - 1
@@ -219,7 +220,8 @@ function on.paint(gc)
       drawCenteredString(gc,"You won ! Score = " .. tostring(math.floor(score)))
   elseif needHelp then
       helpScreen(gc)
-   end
+   end 
+   
 end
 
 function on.arrowKey(key)
@@ -391,7 +393,10 @@ function Ball:paint(gc)
     gc:fillArc(self.x-self.radius+1, self.y-self.radius+1, 2*self.radius-2, 2*self.radius-2, 0, 360)
 end
 
-function Ball:intersectsBlock(block)         
+function Ball:intersectsBlock(block)
+    if block.state == 3 then
+       return (self.x > block.x-self.radius-3 and self.x < (block.x + block.w + self.radius + 3)) and (self.y > block.y+self.radius + 3 and self.y < (block.y + block.h + self.radius + 3))
+    end
     return (self.x > block.x-self.radius-2 and self.x < (block.x + block.w + self.radius + 2)) and (self.y > block.y+self.radius + 2 and self.y < (block.y + block.h + self.radius + 2))
 end
 
