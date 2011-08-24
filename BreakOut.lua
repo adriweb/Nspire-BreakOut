@@ -40,25 +40,15 @@ function reset()
     BlocksTable = {}
     BallsTable = {}
     FallingBonusTable = {}
-    totalBlocksToDestroy = 0
-    staticBlocks = 0
         
     level = { {1,1,1}, {3,5,2}, {10,4,3} } -- level 1
     -- Random level : 
     for i=1,20 do
-       table.insert(level,{math.random(0,12),math.random(0,10),randomAndCount()})
+       table.insert(level,{math.random(0,12),math.random(0,10),math.random(1,3)})
     end
     for i, blockTable in pairs(level) do
          table.insert(BlocksTable,Block(20*blockTable[1]*XRatio, 12*blockTable[2]*YRatio, BlockWidth*XRatio, BlockHeight*YRatio, blockTable[3], #BlocksTable+1))
     end
-    totalBlocksToDestroy = #BlocksTable - staticBlocks
-end
-
-function randomAndCount()
-   theRand = math.random(1,3)
-   if theRand == 3 then staticBlocks = staticBlocks + 1 end
-   if theRand == 2 then staticBlocks = staticBlocks - 1 end
-   return theRand
 end
 
 -------------------------------   
@@ -179,12 +169,20 @@ function on.mouseMove(x,y)
    if touchEnabled and not pause and x+paddle.size*0.5<platform.window:width()-XLimit+5*test(not device.isCalc) and x>paddle.size*0.5 then paddle.x = x end
 end
 
+function on.escapeKey()
+   needHelp = not needHelp
+end
+
+function on.deactivate()
+   drawCenteredString(platform.gc(),"Hey, what ya doin' here ? Go back to the game !")
+end
+
+function on.activate()
+   platform.gc():setColorRGB(255,255,255)
+   platform.gc():fillRect(1,1,pww(),pwh())
+end  
+  
 function on.paint(gc)
-
-  drawCenteredString(platform.gc(),"Hey, what ya doin' here ? Go back to the game !")
-  gc:setColorRGB(255,255,255)
-  gc:fillRect(1,1,pww(),pwh())
-
   gc:setColorRGB(0,0,0)
   if #BallsTable < 1 or secureNbr > 10 then
       lives = lives - 1
@@ -192,7 +190,7 @@ function on.paint(gc)
           gameover = true
       else
         paddle.x = 0.5*platform.window:width()-29+newPaddleY
-        aBall = Ball(paddle.x,platform.window:height()-26,-1,-1,#BallsTable+1)
+        aBall = Ball(paddle.x,platform.window:height()-26,-1-speedDiff,-1-speedDiff,#BallsTable+1)
         table.insert(BallsTable,aBall)
         pause = true
         waitContinue = true
@@ -204,7 +202,7 @@ function on.paint(gc)
      tmpCount = tmpCount + (type(v) == number and 1 or 0)
   end
   
-  if tmpCount >= totalBlocksToDestroy and tmpCount > 0 and totalBlocksToDestroy > 0 then win = true end  -- a revoir
+  if tmpCount >= #BlocksTable and tmpCount > 0 then win = true end  -- a revoir
   
   if not gameover and not needHelp and not win then
     
@@ -449,7 +447,7 @@ end
 
 function Ball:update()
     -- Si on collisionne sur les bords horizontaux, on change de direction sur X
-    if self.x - self.radius < 0 or self.x + self.radius > platform.window:width()-XLimit then
+    if self.x - self.radius < 0 or self.x + self.radius > platform.window:width()-XLimit-1 then
         self.speedX = -self.speedX
     end
     -- Si on collisionne sur les bords verticaux, on change de direction sur Y
