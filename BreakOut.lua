@@ -276,8 +276,8 @@ function sideBarStuff(gc)
     for i,v in pairs(BonusTable) do
        theTime = (v.timeLeft < 0 and "None") or math.floor(.1*v.timeLeft)
        if v.timeLeft > 0 then
-           if bonus.timeLeft < 66 then gc:setColorRGB(0,0,0) end
-           if bonus.timeLeft < 33 then gc:setColorRGB(255,0,0) end
+           if v.timeLeft < 66 then gc:setColorRGB(0,0,0) end
+           if v.timeLeft < 33 then gc:setColorRGB(255,0,0) end
        end
        gc:drawString(i .. " : " .. theTime,fixedX1-6, 12*i-12,"top")
     end
