@@ -234,6 +234,7 @@ function on.paint(gc)
           gc:setFont("serif","b",12)
           drawXCenteredString(gc,"New Highscore ! Congratulations !",pwh()*.5+20)     
       end
+      gc:setFont("serif","r",12)
       drawCenteredString(gc,"Game Over ! Score = " .. tostring(math.floor(score)))
       drawXCenteredString(gc,"Press 'R' to go to the menu",pwh()*.80)
   elseif win then
