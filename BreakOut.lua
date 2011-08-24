@@ -9,6 +9,8 @@
 BlockWidth = 20
 BlockHeight = 12
 
+touchEnabled = false
+
 totalBlocksToDestroy = 0 
 
 device = { api, hasColor, isCalc, theType, lang }
@@ -37,7 +39,7 @@ function reset()
     BlocksTable = {}
     BallsTable = {}
     FallingBonusTable = {}
-    totalBlocksToDestroy = 99
+    totalBlocksToDestroy = 0
         
     level = { {1,1,1}, {3,5,2}, {10,4,3} } -- level 1
     -- Random level : 
@@ -120,7 +122,7 @@ function on.create()
     while (math.floor(0.5*platform.window:width()-29)+newPaddleY)%4 ~= 0 do
          newPaddleY = newPaddleY+1
     end
-    paddle = Paddle(0.5*platform.window:width()-29+newPaddleY,40,0,"")
+    paddle = Paddle(0.5*platform.window:width()-29+newPaddleY,40*XRatio,0,"")
     aBall = Ball(math.random(10,platform.window:width()-10-XLimit),platform.window:height()-26,-1,-1,#BallsTable+1)
     table.insert(BallsTable,aBall)
     timer.start(0.01)
@@ -134,6 +136,9 @@ function on.resize()
     if device.api == "1.1" then platform.window:setPreferredSize(0,0) end
     device.isCalc = (platform.window:width() < 320)
     device.theType = platform.isDeviceModeRendering() and "handheld" or "software"
+    
+    if not device.isCalc or device.theType == "software" then touchEnabled = true end
+    
     XLimit = device.isCalc and 58 or math.ceil(58*pww()/320)
     fixedX1 = 4+0.5*(pww()-XLimit+pww()-platform:gc():getStringWidth("Nspire"))
     fixedX2 = 6+0.5*(pww()-XLimit+pww()-platform.gc():getStringWidth("BreakOut"))
@@ -148,17 +153,22 @@ function on.resize()
 end
 
 function on.charIn(ch)
-    if ch == "p" then pause = not pause end
-    if ch == "r" then
+    if ch == "p" then pause = not pause
+    elseif ch == "r" then
         on.create()
-    end
-    if ch == "h" then
+    elseif ch == "h" then
        needHelp = not needHelp
+    elseif ch == "t" then
+       touchEnabled = not touchEnabled
+    elseif ch == "8" then
+       on.arrowKey("right")
+    elseif ch == "6" then
+       on.arrowKey("left")
     end
 end
 
 function on.mouseMove(x,y)
-   if not pause and x+paddle.size*0.5<platform.window:width()-XLimit+5*test(not device.isCalc) and x>paddle.size*0.5 then paddle.x = x end
+   if touchEnabled and not pause and x+paddle.size*0.5<platform.window:width()-XLimit+5*test(not device.isCalc) and x>paddle.size*0.5 then paddle.x = x end
 end
 
 function on.paint(gc)
@@ -242,7 +252,7 @@ function ballStuff(gc)
              table.remove(BallsTable,ball.id)
           else
              ball:PaddleChock()
-             if not ball:touchedEdgesOfPaddle() then paddle:goGlow(12) end
+             if not ball:touchedEdgesOfPaddle() then paddle.glow = 12 end
              local increment = 0.7*(-1+test(ball.speedX > 0))*math.abs(ball:howFarAwayFromTheCenterOfThePaddle())
              if ball.x > 10 and ball.x < pww()-10 then ball.x = ball.x + increment end
           end
@@ -314,7 +324,7 @@ function bonusStuff(gc)
         if bonus.timeLeft < 333 then gc:setColorRGB(255,0,0) end
         if bonus.timeLeft > 2 then gc:drawString(bonus.bonusType .. " : " .. tostring(bonus.timeLeft),0,i*12,"top") end
         if not pause and not (bonus.timeLeft < 1) then bonus.timeLeft = bonus.timeLeft - 1 end
-        if bonus.timeLeft < 2 and bonus.timeLeft ~= -15 then resetBonus(bonus) end
+        if bonus.timeLeft < 2 and bonus.timeLeft ~= -10 then resetBonus(bonus) end
    end 
 end
                             
@@ -435,30 +445,24 @@ function Paddle:grabBonus(bonus)
     end
         
     if bonus.bonusType == "PaddleGrow" then
-        self.size = 60
+        self.size = 60*XRatio
     elseif bonus.bonusType == "PaddleShrink" then
-        self.size = 20
+        self.size = 20*XRatio
     elseif bonus.bonusType == "BallClone" then
         table.insert(BallsTable,Ball(math.random(1,platform.window:width()-XLimit),platform.window:height()-26,-1,-1,#BallsTable+1))
     elseif bonus.bonusType == "BallGrow" then
         for _, ball in pairs(BallsTable) do 
-             if ball.y-ball.radius < 5 then
-                ball.y = ball.y + 6
+             if ball.y-ball.radius < 5*XRatio then
+                ball.y = ball.y + 6*XRatio
              end
              ball.radius = ball.radius + 5
         end
     elseif bonus.bonusType == "BallShrink" then
         for _, ball in pairs(BallsTable) do 
-             if ball.y-ball.radius < 5 then
-                ball.y = ball.y + 6
-             end
-             if ball.radius > 4 then ball.radius = ball.radius - 4 end
+             if ball.y-ball.radius < 5*XRatio then ball.y = ball.y + 6 end
+             if ball.radius > 4*XRatio then ball.radius = ball.radius - 4 end
         end
     end
-end     
-
-function Paddle:goGlow(number)
-    self.glow = number
 end
 
 function Paddle:paint(gc)
@@ -525,7 +529,7 @@ function Bonus:init(x, y, bonusType)
     self.x = x
     self.y = y
     self.bonusType = bonusType
-    self.timeLeft = -15
+    self.timeLeft = -10
 end
 
 function Bonus:paint(gc)
@@ -552,18 +556,18 @@ end
 
 function resetBonus(bonus)     
     if bonus.bonusType == "PaddleGrow" then
-        paddle.size = 40
+        paddle.size = 40*XRatio
     elseif bonus.bonusType == "PaddleShrink" then
-        paddle.size = 40
+        paddle.size = 40*XRatio
     elseif bonus.bonusType == "BallClone" then
             -- Do nothing
     elseif bonus.bonusType == "BallGrow" then
         for _, ball in pairs(BallsTable) do 
-             if ball.radius > 4 then ball.radius = ball.radius - 5 end
+             if ball.radius > 4*XRatio then ball.radius = ball.radius - 5*XRatio end
         end
     elseif bonus.bonusType == "BallShrink" then
         for _, ball in pairs(BallsTable) do 
-             if not ball.radius == 4 then ball.radius = ball.radius + 5 end
+             if not ball.radius == 4*XRatio then ball.radius = ball.radius + 5*XRatio end
         end
     end
 end 
