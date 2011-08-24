@@ -42,6 +42,7 @@ function reset()
     BallsTable = {}
     FallingBonusTable = {}
     totalBlocksToDestroy = 0
+    staticBlocks = 0
         
     level = { {1,1,1}, {3,5,2}, {10,4,3} } -- level 1
     -- Random level : 
@@ -51,13 +52,13 @@ function reset()
     for i, blockTable in pairs(level) do
          table.insert(BlocksTable,Block(20*blockTable[1]*XRatio, 12*blockTable[2]*YRatio, BlockWidth*XRatio, BlockHeight*YRatio, blockTable[3], #BlocksTable+1))
     end
-    totalBlocksToDestroy = #BlocksTable - totalBlocksToDestroy
+    totalBlocksToDestroy = #BlocksTable - staticBlocks
 end
 
 function randomAndCount()
    theRand = math.random(1,3)
-   if theRand == 3 then totalBlocksToDestroy = totalBlocksToDestroy + 1 end
-   if theRand == 2 then totalBlocksToDestroy = totalBlocksToDestroy - 1 end
+   if theRand == 3 then staticBlocks = staticBlocks + 1 end
+   if theRand == 2 then staticBlocks = staticBlocks - 1 end
    return theRand
 end
 
@@ -129,7 +130,8 @@ function on.create()
          newPaddleY = newPaddleY+1
     end
     paddle = Paddle(0.5*platform.window:width()-29+newPaddleY,40*XRatio,0,"")
-    aBall = Ball(math.random(10,platform.window:width()-10-XLimit),platform.window:height()-26,-1,-1,#BallsTable+1)
+    local speedDiff = test(device.isCalc and device.theType == "handheld")
+    aBall = Ball(math.random(10,platform.window:width()-10-XLimit),platform.window:height()-26,-1-speedDiff,-1-speedDiff,#BallsTable+1)
     table.insert(BallsTable,aBall)
     timer.start(0.01)
 end
@@ -166,9 +168,9 @@ function on.charIn(ch)
        needHelp = not needHelp
     elseif ch == "t" then
        touchEnabled = not touchEnabled
-    elseif ch == "8" then
-       on.arrowKey("right")
     elseif ch == "6" then
+       on.arrowKey("right")
+    elseif ch == "4" then
        on.arrowKey("left")
     end
 end
@@ -192,9 +194,15 @@ function on.paint(gc)
       end
   end
   if lives < 1 then gameover = true end
-  if tmpCount >= totalBlocksToDestroy and tmpCount > 0 and totalBlocksToDestroy > 0 then win = true end  -- a revoir
-  if not gameover and not needHelp and not win then
   
+  for _,v in pairs(BlocksTable) do
+     tmpCount = tmpCount + (type(v) == number and 1 or 0)
+  end
+  
+  if tmpCount >= totalBlocksToDestroy and tmpCount > 0 and totalBlocksToDestroy > 0 then win = true end  -- a revoir
+  
+  if not gameover and not needHelp and not win then
+    
     sideBarStuff(gc)
     if score == -1 then score = 0 end
     if not pause then score = score + 0.2 end
@@ -292,7 +300,10 @@ function ballStuff(gc)
            
         if pause then
            gc:setAlpha(255)
-           if waitContinue then 
+           if waitContinue then
+              for _, bonus in pairs(BonusTable) do
+                 resetBonus(bonus)
+              end
               gc:drawString(lives .. " ball(s) left... (Press 'P')",0.5*(pww()-gc:getStringWidth(lives .. " ball(s) left... (Press 'P')")-32),pwh()/2+25,"top") 
            else
                drawCenteredString(gc,"... Pause ...")
@@ -339,6 +350,7 @@ function helpScreen(gc)
    gc:drawRect(pww()*0.10,pwh()*0.15,pww()*0.8,pwh()*0.7)
    
    gc:drawImage(gameLogo,.5*(pww()-image.width(gameLogo)), pwh()*.19)
+   gc:setColorRGB(0,0,0) -- bugfix to prevent image to update the current color
    
    drawXCenteredString(gc,"Paddle Control : Arrows or 4/6",pwh()*0.52)
    drawXCenteredString(gc,"'T' to enable touch-controls",pwh()*0.60)
