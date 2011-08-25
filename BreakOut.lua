@@ -1,7 +1,7 @@
 -- Adriweb (with help from Levak), 2011
 -- BreakOut "Casse Brique" Game
 
-gameVersion = "v1.8.8b"                                 
+gameVersion = "v1.8.9b"                                 
                                  
 -------------------------------   
 ------------Globals------------
@@ -54,7 +54,6 @@ end
 -------------------------------   
 ---------BetterLuaAPI----------
 ------------------------------- 
-
 
 function fillRoundRect(myGC,x,y,wd,ht,radius)  -- wd = width and ht = height -- renders badly when transparency (alpha) is not at maximum >< will re-code later
     if radius > ht/2 then radius = ht/2 end -- avoid drawing cool but unexpected shapes. This will draw a circle (max radius)
@@ -282,9 +281,10 @@ function sideBarStuff(gc)
        gc:drawString(i .. " : " .. theTime,fixedX1-6, 12*i-12,"top")
     end
     
+    gc:setColorRGB(0,0,0)    
     gc:drawString("______",fixedX1-2,pwh()*.5-51,"top")
     gc:drawString("Highscore :",fixedX1-9,pwh()*.5-31,"top")
-    gc:drawString(highscore,fixedX1+13,pwh()*.5-18,"top")
+    gc:drawString(highscore,0.5*(2*pww()-XLimit-gc:getStringWidth(tostring(highscore))),pwh()*.5-18,"top")
     gc:drawString("______",fixedX1-2,pwh()*.5-12,"top")
     gc:drawString("Balls Left :",fixedX1-9,pwh()*.5+8,"top")
     gc:drawString(lives,fixedX1+14,pwh()*.5+22,"top")
