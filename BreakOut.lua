@@ -1,7 +1,7 @@
 -- Adriweb (with help from Levak), 2011
 -- BreakOut "Casse Brique" Game
 
-gameVersion = "v1.8.9b"                                 
+gameVersion = "v1.9.0b"                                 
                                  
 -------------------------------   
 ------------Globals------------
@@ -352,7 +352,7 @@ function ballStuff(gc)
            end
         end
         
-        if not pause and math.random(1,450) == 100 then table.insert(FallingBonusTable,Bonus(math.random(5,pww()-65),0,bonusTypes[math.random(1,#bonusTypes)])) end
+        if not pause and math.random(1,450) == 100 then table.insert(FallingBonusTable,Bonus(math.random(5,XLimit),0,bonusTypes[math.random(1,#bonusTypes)])) end
     end
 end
 
@@ -614,11 +614,12 @@ end
 
 function Bonus:paint(gc)
     gc:setColorRGB(0,0,0)
-    gc:fillRect(self.x*XRatio,self.y*YRatio,15*XRatio,15*YRatio) 
+    gc:fillRect(self.x,self.y,15*XRatio,15*YRatio) 
     gc:setColorRGB(200,0,200)
-    gc:fillRect((self.x+1)*XRatio,(self.y+1)*YRatio,13*XRatio,13*YRatio)
-    gc:setColorRGB(255,0,0)
-    gc:fillRect((self.x+2)*XRatio,(self.y+2)*YRatio,11*XRatio,11*YRatio)
+    gc:fillRect(self.x+1,self.y+1,13*XRatio,13*YRatio)
+    gc:setColorRGB(255,255,255)
+    gc:fillRect(self.x+2,self.y+2,11*XRatio,11*YRatio)
+    gc:drawImage(bonusImagesStr[self.bonusType],self.x+3, self.y+4)
 end
 
 function Bonus:update()
@@ -626,7 +627,7 @@ function Bonus:update()
 end
 
 function Bonus:fallsOnPaddle()
-    return (self.y+4 > platform.window:height()-16) and (self.x >= paddle.x-paddle.size*0.5-4 and (self.x <= paddle.x+paddle.size*0.5+4))
+    return (self.y+4 > platform.window:height()-16) and (self.x >= paddle.x-paddle.size*0.5-4 and self.x <= paddle.x+paddle.size*0.5+4)
 end
 
 function Bonus:destroy()
@@ -668,4 +669,5 @@ ballCloneImg = image.new("\014\0\0\0\010\0\0\0\0\0\0\0\028\0\0\0\016\0\001\0\255
 ballShrinkImg = image.new("\014\0\0\0\010\0\0\0\0\0\0\0\028\0\0\0\016\0\001\0\0\128alalalalalalalalalalalal\0\128al\0\128alalalalalalalalalal\0\128alalal\0\128\0\128\0\128\0\128\0\128\0\128\0\128\0\128\0\128\0\128alalal\0\128alalalalalalalalalal\0\128al\0\128alalalal\200\238\200\238\200\238\200\238alalalal\0\128alalalal\200\238\200\238\200\238\200\238\200\238\200\238alalalalalalalal\200\238\200\238\200\238\200\238\200\238\200\238alal\255\255\255\255alalalal\200\238\200\238\200\238\200\238\200\238\200\238\255\255\255\255\255\255\255\255alalalal\200\238\200\238\200\238\200\238\200\238\200\238\255\255\255\255\255\255\255\255alalalalal\200\238\200\238\200\238\200\238\255\255\255\255\255\255\255\255\255\255")
 
 bonusImages = { paddleGrowImg, paddleShrinkImg, ballCloneImg, ballGrowImg, ballShrinkImg }
+bonusImagesStr = { ["PaddleGrow"]=paddleGrowImg, ["PaddleShrink"]=paddleShrinkImg, ["BallClone"]=ballCloneImg, ["BallGrow"]=ballGrowImg, ["BallShrink"]=ballShrinkImg }
 
