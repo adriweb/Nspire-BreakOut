@@ -270,11 +270,10 @@ end
 function sideBarStuff(gc)
     gc:drawLine(platform.window:width()-XLimit,0,platform.window:width()-XLimit,platform.window:height())
     gc:setFont("serif","r",10)
-    gc:setColorRGB(0,0,0)
-    
     local theTime
     
     for i,v in pairs(BonusTable) do
+       gc:setColorRGB(0,0,0)
        theTime = (v.timeLeft < 0 and "None") or math.floor(.1*v.timeLeft)
        if v.timeLeft > 0 then
            if v.timeLeft < 66 then gc:setColorRGB(0,0,0) end
