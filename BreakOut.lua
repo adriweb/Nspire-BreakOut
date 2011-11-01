@@ -1,11 +1,14 @@
 -- Adriweb (with help from Levak), 2011
 -- BreakOut "Casse Brique" Game
+-- Thanks TI-Planet.org
 
-gameVersion = "v1.9.0b"                                 
+gameVersion = "v1.9.1b"                                 
                                  
 -------------------------------   
 ------------Globals------------
 ------------------------------- 
+
+platform.apilevel = '1.0'
 
 BlockWidth = 20
 BlockHeight = 12
@@ -151,7 +154,7 @@ function on.resize()
     
     XLimit = device.isCalc and 58 or math.ceil(58*pww()/320)
     fixedX1 = 4+0.5*(pww()-XLimit+pww()-platform:gc():getStringWidth("Nspire"))
-    fixedX2 = 6+0.5*(pww()-XLimit+pww()-platform.gc():getStringWidth("BreakOut"))
+    fixedX2 = 6+0.5*(pww()-XLimit+pww()-platform:gc():getStringWidth("BreakOut"))
     XRatio = platform.window:width()/318
     YRatio = platform.window:height()/212
     
@@ -161,7 +164,7 @@ function on.resize()
     end
     totalBlocksToDestroy = #BlocksTable - totalBlocksToDestroy 
     
-    speedDiff = test(device.isCalc and device.theType == "handheld")
+    speedDiff = (device.isCalc and device.theType == "handheld") and 3 or 1
 end
 
 function on.charIn(ch)
@@ -401,7 +404,7 @@ function helpScreen(gc)
    gc:setFont("serif","r",12)
    drawXCenteredString(gc,"Nspire BreakOut " .. gameVersion .. " | Adriweb 2011",pwh()*0.03*YRatio)
    gc:setFont("serif","i",12)
-   drawXCenteredString(gc,"Thanks to Levak, Jim Bauwens, Omnimaga...",pwh()*0.87)
+   drawXCenteredString(gc,"Thanks to Levak, Jim Bauwens, TI-Planet...",pwh()*0.87)
 end
                             
 -------------------------------   
@@ -669,4 +672,5 @@ ballShrinkImg = image.new("\014\0\0\0\010\0\0\0\0\0\0\0\028\0\0\0\016\0\001\0\0\
 
 bonusImages = { paddleGrowImg, paddleShrinkImg, ballCloneImg, ballGrowImg, ballShrinkImg }
 bonusImagesStr = { ["PaddleGrow"]=paddleGrowImg, ["PaddleShrink"]=paddleShrinkImg, ["BallClone"]=ballCloneImg, ["BallGrow"]=ballGrowImg, ["BallShrink"]=ballShrinkImg }
+
 
